@@ -81,7 +81,7 @@ def _get_preflight_data(db_session: Session = None) -> Dict[str, Any]:
     env_data = {
         "DB_URL": os.getenv("DB_URL", ""),
         "SERVICE_BASE_URL": os.getenv("SERVICE_BASE_URL", ""),
-        "ORCH_TIMEOUT_MS_DEFAULT": int(os.getenv("ORCH_TIMEOUT_MS_DEFAULT", "16000")),
+        "ORCH_TIMEOUT_MS_DEFAULT": int(os.getenv("ORCH_TIMEOUT_MS_DEFAULT", "25000")),
         "ORCH_CONCURRENCY": int(os.getenv("ORCH_CONCURRENCY", "8")),
         "CB_FAILS": int(os.getenv("CB_FAILS", "2")),
         "CB_TTL_S": int(os.getenv("CB_TTL_S", "60")),

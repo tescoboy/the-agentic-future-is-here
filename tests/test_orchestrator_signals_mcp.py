@@ -68,7 +68,7 @@ async def test_orchestrate_brief_signals_mcp_error(mock_call_signals, mock_signa
         "agent": {"name": "Test Signals MCP", "url": "http://test-signals-mcp.com", "type": "signals", "protocol": "mcp"},
         "ok": False,
         "items": None,
-        "error": "timeout after 8000ms"
+        "error": "timeout after 25000ms"
     }
     
     # Call orchestrator
@@ -77,7 +77,7 @@ async def test_orchestrate_brief_signals_mcp_error(mock_call_signals, mock_signa
     # Verify error result
     signals_result = result["signals"][0]
     assert signals_result["ok"] is False
-    assert "timeout after 8000ms" in signals_result["error"]
+    assert "timeout after 25000ms" in signals_result["error"]
 
 
 async def test_orchestrate_brief_signals_rest_rejected(mock_signals_agent_rest):

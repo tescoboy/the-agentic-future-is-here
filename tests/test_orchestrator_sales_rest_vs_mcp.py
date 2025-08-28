@@ -90,7 +90,7 @@ async def test_orchestrate_brief_sales_error(mock_call_sales, mock_get_tenant, m
         "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
         "ok": False,
         "items": None,
-        "error": "timeout after 8000ms"
+        "error": "timeout after 25000ms"
     }
     
     # Call orchestrator
@@ -99,7 +99,7 @@ async def test_orchestrate_brief_sales_error(mock_call_sales, mock_get_tenant, m
     # Verify error result
     sales_result = result["results"][0]
     assert sales_result["ok"] is False
-    assert "timeout after 8000ms" in sales_result["error"]
+    assert "timeout after 25000ms" in sales_result["error"]
 
 
 @patch('app.services.orchestrator.get_tenant_by_id')

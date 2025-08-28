@@ -23,7 +23,7 @@ def mock_signals_agent():
 async def test_orchestrator_timeout_error(mock_call_signals, mock_signals_agent):
     """Test orchestrator timeout error handling."""
     # Setup mock to simulate timeout
-    mock_call_signals.side_effect = Exception("timeout after 8000ms")
+    mock_call_signals.side_effect = Exception("timeout after 25000ms")
     
     # Call orchestrator
     result = await orchestrate_brief("Find banner ads", [], [mock_signals_agent])
@@ -101,7 +101,7 @@ async def test_orchestrator_different_timeout_messages(mock_call_signals, mock_s
     """Test orchestrator with different timeout error messages."""
     # Test various timeout-related error messages
     timeout_messages = [
-        "timeout after 8000ms",
+        "timeout after 25000ms",
         "timeout after 5000ms", 
         "connection timeout",
         "request timeout"
