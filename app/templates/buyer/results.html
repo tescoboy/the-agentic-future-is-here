@@ -23,8 +23,8 @@
             {% endif %}
 
             <!-- Submitted Brief -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card mb-4 shadow">
+                <div class="card-header bg-secondary text-white">
                     <h3 class="mb-0">
                         <i class="fa-solid fa-file-lines me-2"></i>
                         Submitted Brief
@@ -36,8 +36,8 @@
             </div>
 
             <!-- Sales Results -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card mb-4 shadow">
+                <div class="card-header bg-primary text-white">
                     <h3 class="mb-0">
                         <i class="fa-solid fa-shopping-cart me-2"></i>
                         Sales Results
@@ -61,16 +61,16 @@
                                     <div class="row">
                                         {% for item in result.product_items %}
                                             <div class="col-md-6 mb-3">
-                                                <div class="card h-100">
-                                                    <div class="card-header d-flex justify-content-between align-items-start">
-                                                        <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                <div class="card h-100 shadow-sm">
+                                                    <div class="card-header d-flex justify-content-between align-items-start bg-light">
+                                                        <h6 class="mb-0 fw-bold">{{ item.product_name }}</h6>
                                                         <button class="btn btn-success btn-sm" onclick="activateCampaign('{{ item.product_name }}')">
                                                             <i class="fa-solid fa-rocket me-1"></i>
                                                             Activate
                                                         </button>
                                                     </div>
                                                     <div class="card-body">
-                                                        <p class="card-text small text-muted mb-2">
+                                                        <p class="card-text small text-muted mb-3">
                                                             {{ item.product_description }}
                                                         </p>
                                                         
@@ -91,26 +91,30 @@
                                                             <div class="col-6">
                                                                 {% if item.formats %}
                                                                     <div class="mb-2">
-                                                                        <small class="text-muted">
+                                                                        <small class="text-muted d-block mb-1">
                                                                             <i class="fa-solid fa-tv me-1"></i>
                                                                             <strong>Formats:</strong>
                                                                         </small>
                                                                         <div>
                                                                             {% for format in item.formats %}
-                                                                                <span class="badge bg-primary me-1">{{ format }}</span>
+                                                                                <span class="badge bg-primary me-1 mb-1">{{ format }}</span>
                                                                             {% endfor %}
                                                                         </div>
                                                                     </div>
                                                                 {% endif %}
                                                                 {% if item.targeting %}
                                                                     <div>
-                                                                        <small class="text-muted">
+                                                                        <small class="text-muted d-block mb-1">
                                                                             <i class="fa-solid fa-crosshairs me-1"></i>
                                                                             <strong>Targeting:</strong>
                                                                         </small>
                                                                         <div>
                                                                             {% for key, value in item.targeting.items() %}
-                                                                                <span class="badge bg-secondary me-1">{{ key }}: {{ value }}</span>
+                                                                                {% if value is sequence and value is not string %}
+                                                                                    <span class="badge bg-secondary me-1 mb-1">{{ key }}: {{ value|join(', ') }}</span>
+                                                                                {% else %}
+                                                                                    <span class="badge bg-secondary me-1 mb-1">{{ key }}: {{ value }}</span>
+                                                                                {% endif %}
                                                                             {% endfor %}
                                                                         </div>
                                                                     </div>
@@ -118,7 +122,9 @@
                                                             </div>
                                                         </div>
                                                         
-                                                        <p class="card-text">
+                                                        <hr class="my-3">
+                                                        
+                                                        <p class="card-text mb-2">
                                                             <strong>Reason:</strong> {{ item.reason }}
                                                         </p>
                                                         {% if item.score is not none %}
@@ -159,8 +165,8 @@
             </div>
 
             <!-- Signals Results -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card mb-4 shadow">
+                <div class="card-header bg-info text-white">
                     <h3 class="mb-0">
                         <i class="fa-solid fa-signal me-2"></i>
                         Signals Results
