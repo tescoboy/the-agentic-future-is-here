@@ -62,13 +62,62 @@
                                         {% for item in result.product_items %}
                                             <div class="col-md-6 mb-3">
                                                 <div class="card h-100">
-                                                    <div class="card-header">
+                                                    <div class="card-header d-flex justify-content-between align-items-start">
                                                         <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                        <button class="btn btn-success btn-sm" onclick="activateCampaign('{{ item.product_name }}')">
+                                                            <i class="fa-solid fa-rocket me-1"></i>
+                                                            Activate
+                                                        </button>
                                                     </div>
                                                     <div class="card-body">
                                                         <p class="card-text small text-muted mb-2">
                                                             {{ item.product_description }}
                                                         </p>
+                                                        
+                                                        <!-- Product Metadata -->
+                                                        <div class="row mb-3">
+                                                            <div class="col-6">
+                                                                <div class="d-flex align-items-center mb-2">
+                                                                    <i class="fa-solid fa-dollar-sign text-success me-2"></i>
+                                                                    <strong>${{ "%.2f"|format(item.price_cpm) }} CPM</strong>
+                                                                </div>
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fa-solid fa-truck text-info me-2"></i>
+                                                                    <span class="badge {% if item.is_guaranteed %}bg-success{% else %}bg-warning{% endif %}">
+                                                                        {{ item.delivery_type }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                {% if item.formats %}
+                                                                    <div class="mb-2">
+                                                                        <small class="text-muted">
+                                                                            <i class="fa-solid fa-tv me-1"></i>
+                                                                            <strong>Formats:</strong>
+                                                                        </small>
+                                                                        <div>
+                                                                            {% for format in item.formats %}
+                                                                                <span class="badge bg-primary me-1">{{ format }}</span>
+                                                                            {% endfor %}
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                                {% if item.targeting %}
+                                                                    <div>
+                                                                        <small class="text-muted">
+                                                                            <i class="fa-solid fa-crosshairs me-1"></i>
+                                                                            <strong>Targeting:</strong>
+                                                                        </small>
+                                                                        <div>
+                                                                            {% for key, value in item.targeting.items() %}
+                                                                                <span class="badge bg-secondary me-1">{{ key }}: {{ value }}</span>
+                                                                            {% endfor %}
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                        
                                                         <p class="card-text">
                                                             <strong>Reason:</strong> {{ item.reason }}
                                                         </p>
@@ -182,4 +231,10 @@
         </div>
     </div>
 </div>
+
+<script>
+function activateCampaign(productName) {
+    alert('Your campaign has been pushed to the publishers ad server');
+}
+</script>
 {% endblock %}

@@ -119,7 +119,7 @@ def enrich_sales_results(results: List[Dict[str, Any]], db_session: Session) -> 
         db_session: Database session
         
     Returns:
-        Enriched results with product name and description
+        Enriched results with product name, description, and metadata
     """
     enriched_results = []
     
@@ -142,10 +142,32 @@ def enrich_sales_results(results: List[Dict[str, Any]], db_session: Session) -> 
                     warnings.append(f"Product {product_id} not found")
                     continue
                 
+                # Parse JSON fields
+                formats = []
+                targeting = {}
+                try:
+                    if product.formats_json:
+                        import json
+                        formats = json.loads(product.formats_json)
+                except (json.JSONDecodeError, TypeError):
+                    formats = []
+                
+                try:
+                    if product.targeting_json:
+                        import json
+                        targeting = json.loads(product.targeting_json)
+                except (json.JSONDecodeError, TypeError):
+                    targeting = {}
+                
                 enriched_item = {
                     **item,
                     "product_name": product.name,
-                    "product_description": product.description
+                    "product_description": product.description,
+                    "price_cpm": product.price_cpm,
+                    "delivery_type": product.delivery_type,
+                    "formats": formats,
+                    "targeting": targeting,
+                    "is_guaranteed": product.delivery_type.lower() == "guaranteed"
                 }
             except Exception as e:
                 warnings.append(f"Error fetching product {product_id}: {str(e)}")
