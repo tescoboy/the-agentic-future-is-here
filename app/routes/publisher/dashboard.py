@@ -9,6 +9,7 @@ from sqlmodel import Session
 from app.db import get_session
 from app.repos.tenants import get_tenant_by_slug
 from app.repos.products import list_products
+from app.utils.env import get_service_base_url
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -35,9 +36,13 @@ def publisher_dashboard(request: Request, tenant_slug: str, session: Session = D
     # Check if custom prompt is set
     has_custom_prompt = bool(tenant.custom_prompt and tenant.custom_prompt.strip())
     
+    # Compute MCP endpoint URL
+    endpoint_url = f"{get_service_base_url()}/mcp/agents/{tenant_slug}/rpc"
+    
     return templates.TemplateResponse("publisher/dashboard.html", {
         "request": request,
         "tenant": tenant,
         "product_count": total,
-        "has_custom_prompt": has_custom_prompt
+        "has_custom_prompt": has_custom_prompt,
+        "endpoint_url": endpoint_url
     })
