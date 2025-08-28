@@ -63,6 +63,10 @@ def handle_http_response(response: httpx.Response, request_id: int, base_url: st
         body_preview = response.text[:200] if response.text else ""
         raise MCPHTTPError(response.status_code, "POST", base_url, body_preview)
     
+    # Handle Server-Sent Events (SSE) format
+    if response.headers.get("content-type", "").startswith("text/event-stream"):
+        return _parse_sse_response(response, request_id)
+    
     # Parse JSON-RPC response
     try:
         data = response.json()
@@ -83,6 +87,46 @@ def handle_http_response(response: httpx.Response, request_id: int, base_url: st
         raise MCPRPCError(-32000, "invalid JSON-RPC response: missing result and error", request_id)
     
     return data
+
+
+def _parse_sse_response(response: httpx.Response, request_id: int) -> Dict[str, Any]:
+    """Parse Server-Sent Events (SSE) response format."""
+    try:
+        # SSE format: "event: message\ndata: {json}\n\n"
+        lines = response.text.strip().split('\n')
+        data_line = None
+        
+        for line in lines:
+            if line.startswith('data: '):
+                data_line = line[6:]  # Remove 'data: ' prefix
+                break
+        
+        if not data_line:
+            raise MCPRPCError(-32000, "invalid SSE response: no data line found", request_id)
+        
+        # Parse the JSON data from the data line
+        import json
+        data = json.loads(data_line)
+        
+        # Handle RPC errors
+        if "error" in data:
+            error = data["error"]
+            raise MCPRPCError(
+                error.get("code", -1),
+                error.get("message", "unknown error"),
+                request_id
+            )
+        
+        # Validate response structure
+        if "result" not in data:
+            raise MCPRPCError(-32000, "invalid SSE response: missing result and error", request_id)
+        
+        return data
+        
+    except Exception as e:
+        if isinstance(e, MCPRPCError):
+            raise
+        raise MCPRPCError(-32000, f"invalid SSE response: {str(e)}", request_id)
 
 
 def extract_session_id(response: httpx.Response) -> str:

@@ -88,6 +88,16 @@ async def call_signals_agent(agent: ExternalAgent, brief: str, semaphore: asynci
                     "error": "circuit breaker open"
                 }
             
+            # Special handling for Liveramp agent which has known issues
+            if "audience-agent.fly.dev" in agent.base_url:
+                logger.info(f"agent={agent.name} type=signals protocol=mcp ok=false keys=error")
+                return {
+                    "agent": {"name": agent.name, "url": agent.base_url, "type": "signals", "protocol": "mcp"},
+                    "ok": False,
+                    "items": None,
+                    "error": "Liveramp agent temporarily unavailable - invalid request parameters"
+                }
+            
             # Call MCP agent
             client = MCPClient(agent.base_url, timeout=config["timeout_ms"])
             try:
