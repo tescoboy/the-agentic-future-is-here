@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Switch Tenant{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-exchange-alt"></i>
+                Switch Tenant
+            </h1>
+            
+            {% if request.query_params.get('alert') == 'tenant_required' %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Tenant Required:</strong> You must select a tenant before accessing the buyer interface.
+            </div>
+            {% endif %}
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Select a tenant for admin context. This will set your session context for sell-side admin operations (Products, Prompt Admin).
+            </div>
+            
+            {% if tenants %}
+                <div class="row">
+                    {% for tenant in tenants %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tenant.name }}</h5>
+                                <p class="card-text text-muted">
+                                    <code>{{ tenant.slug }}</code>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Created: {{ tenant.created_at.strftime('%Y-%m-%d') }}
+                                    </small>
+                                </p>
+                                
+                                {% if tenant.custom_prompt %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-edit"></i>
+                                    Custom Prompt
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <form method="POST" action="/switch-tenant/" class="d-inline">
+                                    <input type="hidden" name="tenant_slug" value="{{ tenant.slug }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-check"></i>
+                                        Use This Tenant
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    No tenants found. Please create a tenant first.
+                </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <form method="POST" action="/switch-tenant/clear" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                        Clear Current Context
+                    </button>
+                </form>
+                
+                <a href="/" class="btn btn-link">
+                    <i class="fas fa-home"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

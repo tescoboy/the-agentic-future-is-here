@@ -1,0 +1,153 @@
+{% extends "publisher/base_pub.html" %}
+
+{% block title %}{{ tenant.name }} - Sales Prompt{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-edit"></i>
+                Sales Prompt Configuration
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot"></i>
+                        AI Sales Prompt
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if errors.custom_prompt %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ errors.custom_prompt }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Default Sales Prompt (Read-only)</label>
+                            <div class="border rounded p-3 bg-white">
+                                <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.9em;">{{ default_prompt }}</pre>
+                            </div>
+                            <div class="form-text">
+                                This is the default prompt used by the AI sales agent when no custom prompt is set.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="custom_prompt" class="form-label">Custom Sales Prompt (Optional)</label>
+                            <textarea class="form-control" id="custom_prompt" name="custom_prompt" 
+                                      rows="15" placeholder="Enter your custom sales prompt here...">{{ custom_prompt or '' }}</textarea>
+                            <div class="form-text">
+                                Leave empty to use the default prompt. Maximum 8000 characters.
+                                <span id="char-count" class="text-muted"></span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Custom Prompt Tips:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Use <code>{brief}</code> to reference the buyer's campaign brief</li>
+                                <li>Use <code>{products}</code> to reference available products</li>
+                                <li>Focus on your unique value proposition and targeting capabilities</li>
+                                <li>Keep the tone professional and sales-oriented</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/publisher/{{ tenant.slug }}/" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Prompt
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Prompt Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Configure a custom AI sales prompt for <strong>{{ tenant.name }}</strong>.
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            This prompt will be used when buyers interact with your products through the AI sales agent.
+                        </small>
+                    </p>
+                </div>
+            </div>
+
+            <div class="card bg-light mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb"></i>
+                        Best Practices
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Highlight your unique strengths
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Include specific targeting capabilities
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Mention quality metrics or guarantees
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Keep it concise and actionable
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('custom_prompt');
+    const charCount = document.getElementById('char-count');
+    
+    function updateCharCount() {
+        const length = textarea.value.length;
+        const maxLength = 8000;
+        charCount.textContent = `${length}/${maxLength} characters`;
+        
+        if (length > maxLength) {
+            charCount.className = 'text-danger';
+        } else if (length > maxLength * 0.9) {
+            charCount.className = 'text-warning';
+        } else {
+            charCount.className = 'text-muted';
+        }
+    }
+    
+    textarea.addEventListener('input', updateCharCount);
+    updateCharCount();
+});
+</script>
+{% endblock %}

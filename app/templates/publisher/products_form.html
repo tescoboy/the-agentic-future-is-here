@@ -1,0 +1,117 @@
+{% extends "publisher/base_pub.html" %}
+
+{% block title %}{{ tenant.name }} - New Product{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-plus"></i>
+                Create New Product
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card bg-light">
+                <div class="card-body">
+                    {% if errors.form %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ errors.form }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <input type="hidden" name="tenant_id" value="{{ tenant.id }}">
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Product Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ name or '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="3">{{ description or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price_cpm" class="form-label">Price (CPM) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="price_cpm" name="price_cpm" 
+                                               value="{{ price_cpm or '' }}" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="delivery_type" class="form-label">Delivery Type *</label>
+                                    <select class="form-select" id="delivery_type" name="delivery_type" required>
+                                        <option value="">Select delivery type...</option>
+                                        <option value="banner" {% if delivery_type == 'banner' %}selected{% endif %}>Banner</option>
+                                        <option value="video" {% if delivery_type == 'video' %}selected{% endif %}>Video</option>
+                                        <option value="native" {% if delivery_type == 'native' %}selected{% endif %}>Native</option>
+                                        <option value="audio" {% if delivery_type == 'audio' %}selected{% endif %}>Audio</option>
+                                        <option value="display" {% if delivery_type == 'display' %}selected{% endif %}>Display</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="formats_json" class="form-label">Formats (JSON)</label>
+                            <textarea class="form-control" id="formats_json" name="formats_json" 
+                                      rows="3" placeholder='{"sizes": ["300x250", "728x90"]}'>{{ formats_json or '{}' }}</textarea>
+                            <div class="form-text">JSON object with format specifications</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="targeting_json" class="form-label">Targeting (JSON)</label>
+                            <textarea class="form-control" id="targeting_json" name="targeting_json" 
+                                      rows="3" placeholder='{"geo": ["US", "CA"], "age": [18, 65]}'>{{ targeting_json or '{}' }}</textarea>
+                            <div class="form-text">JSON object with targeting specifications</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/publisher/{{ tenant.slug }}/products" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Product Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Create a new product for <strong>{{ tenant.name }}</strong>.
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            This product will be available for buyers to discover and purchase.
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

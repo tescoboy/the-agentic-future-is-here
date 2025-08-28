@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Tenants - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Tenants</h1>
+    <div>
+        {% if tenants %}
+        <form method="POST" action="/tenants/delete-all" style="display: inline;" 
+              onsubmit="return confirm('Are you sure you want to delete ALL tenants? This action cannot be undone.')">
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="fas fa-trash"></i> Delete All Tenants
+            </button>
+        </form>
+        {% endif %}
+        <a href="/tenants/new" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Tenant
+        </a>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/tenants">
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="q" 
+                           value="{{ search_query }}" placeholder="Search tenants...">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    {% if search_query %}
+                    <a href="/tenants" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tenants Table -->
+<div class="card">
+    <div class="card-body">
+        {% if tenants %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants %}
+                    <tr>
+                        <td>{{ tenant.id }}</td>
+                        <td>
+                            {{ tenant.name }}
+                            {% if tenant.custom_prompt %}
+                            <span class="badge bg-warning text-dark ms-2">
+                                <i class="fas fa-edit"></i>
+                                Custom Prompt
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ tenant.slug }}</code></td>
+                        <td>{{ tenant.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/tenants/{{ tenant.id }}/edit" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="/tenants/{{ tenant.id }}/prompt" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-edit"></i> Prompt
+                            </a>
+                            <form method="POST" action="/tenants/{{ tenant.id }}/delete" 
+                                  style="display: inline;" onsubmit="return confirm('Are you sure?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.total_pages > 1 %}
+        <nav aria-label="Tenants pagination">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ pagination.previous_url }}">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagination.page_range %}
+                <li class="page-item {% if page_num == pagination.current_page %}active{% endif %}">
+                    <a class="page-link" href="{{ pagination.page_urls[page_num] }}">{{ page_num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ pagination.next_url }}">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        <div class="text-muted text-center">
+            Showing {{ pagination.start_index }}-{{ pagination.end_index }} of {{ pagination.total }} tenants
+        </div>
+
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+            <h4>No tenants found</h4>
+            <p class="text-muted">
+                {% if search_query %}
+                No tenants match your search criteria.
+                {% else %}
+                Get started by creating your first tenant.
+                {% endif %}
+            </p>
+            <a href="/tenants/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Tenant
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        {% if agent %}
+                        <i class="fas fa-edit"></i> Edit External Agent
+                        {% else %}
+                        <i class="fas fa-plus"></i> New External Agent
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for field, error in errors.items() %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{% if agent %}/external-agents/{{ agent.id }}/edit{% else %}/external-agents{% endif %}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ agent.name if agent else name or '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="base_url" class="form-label">Base URL</label>
+                            <input type="url" class="form-control" id="base_url" name="base_url" 
+                                   value="{{ agent.base_url if agent else base_url or '' }}" required>
+                            <div class="form-text">Must start with http:// or https://</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="agent_type" class="form-label">Agent Type</label>
+                                    <select class="form-select" id="agent_type" name="agent_type" required>
+                                        <option value="">Select type...</option>
+                                        <option value="sales" {% if (agent and agent.agent_type == 'sales') or (agent_type == 'sales') %}selected{% endif %}>Sales</option>
+                                        <option value="signals" {% if (agent and agent.agent_type == 'signals') or (agent_type == 'signals') %}selected{% endif %}>Signals</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="protocol" class="form-label">Protocol</label>
+                                    <select class="form-select" id="protocol" name="protocol" required>
+                                        <option value="">Select protocol...</option>
+                                        <option value="rest" {% if (agent and agent.protocol == 'rest') or (protocol == 'rest') %}selected{% endif %}>REST</option>
+                                        <option value="mcp" {% if (agent and agent.protocol == 'mcp') or (protocol == 'mcp') %}selected{% endif %}>MCP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="enabled" name="enabled" value="true"
+                                       {% if (agent and agent.enabled) or (enabled is not defined) or enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="enabled">
+                                    Enabled
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/external-agents" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 
+                                {% if agent %}Update{% else %}Create{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

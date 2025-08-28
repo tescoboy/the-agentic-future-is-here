@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Brief Results - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Summary Statistics -->
+            {% if summary_stats.total > 0 %}
+                <div class="alert alert-info" role="alert">
+                    <i class="fa-solid fa-chart-bar me-2"></i>
+                    <strong>Summary:</strong> {{ summary_stats.success }} agents succeeded, {{ summary_stats.failure }} failed
+                </div>
+            {% endif %}
+
+            <!-- Orchestrator Error -->
+            {% if orchestrator_error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    {{ orchestrator_error }}
+                </div>
+            {% endif %}
+
+            <!-- Submitted Brief -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-file-lines me-2"></i>
+                        Submitted Brief
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ brief }}</p>
+                </div>
+            </div>
+
+            <!-- Sales Results -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-shopping-cart me-2"></i>
+                        Sales Results
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if sales_results %}
+                        {% for result in sales_results %}
+                            {% if result.ok %}
+                                {% if result.product_items %}
+                                    <h5 class="mb-3">
+                                        {{ result.agent.name }}
+                                        {% if result.warnings and result.warnings|length > 0 %}
+                                            <span class="badge bg-warning text-dark ms-2">
+                                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                                {{ result.warnings|length }} warnings
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    
+                                    <div class="row">
+                                        {% for item in result.product_items %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="card-text small text-muted mb-2">
+                                                            {{ item.product_description }}
+                                                        </p>
+                                                        <p class="card-text">
+                                                            <strong>Reason:</strong> {{ item.reason }}
+                                                        </p>
+                                                        {% if item.score is not none %}
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="me-2">
+                                                                    {{ generate_heat_indicator(item.score) | safe }}
+                                                                </span>
+                                                                <small class="text-muted">
+                                                                    Match {{ (item.score * 100) | round(0) | int }}%
+                                                                </small>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light" role="alert">
+                                        <i class="fa-solid fa-info-circle me-2"></i>
+                                        <strong>{{ result.agent.name }}:</strong> No high-confidence matches (≥70%).
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                    <strong>{{ result.agent.name }}:</strong> {{ result.error }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-light" role="alert">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            No sales agents were selected or processed.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Signals Results -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-signal me-2"></i>
+                        Signals Results
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if signals %}
+                        {% for signal in signals %}
+                            {% if signal.ok %}
+                                {% if signal.signal_items %}
+                                    <h5 class="mb-3">{{ signal.agent.name }}</h5>
+                                    
+                                    <div class="row">
+                                        {% for item in signal.signal_items %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">{{ item.name }}</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="card-text">
+                                                            <strong>Reason:</strong> {{ item.reason }}
+                                                        </p>
+                                                        {% if item.score is not none %}
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="me-2">
+                                                                    {{ generate_heat_indicator(item.score) | safe }}
+                                                                </span>
+                                                                <small class="text-muted">
+                                                                    Match {{ (item.score * 100) | round(0) | int }}%
+                                                                </small>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light" role="alert">
+                                        <i class="fa-solid fa-info-circle me-2"></i>
+                                        <strong>{{ signal.agent.name }}:</strong> No high-confidence matches (≥70%).
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                    <strong>{{ signal.agent.name }}:</strong> {{ signal.error }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-light" role="alert">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            No signals agents were selected or processed.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="/buyer" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-plus me-2"></i>
+                    Submit Another Brief
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

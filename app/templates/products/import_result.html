@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Import Products - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2>Import Products</h2>
+            </div>
+            <div class="card-body">
+                {% if show_form %}
+                <div class="mb-4">
+                    <h4>CSV Import Instructions</h4>
+                    <p>Upload a CSV file with the following columns:</p>
+                    <ul>
+                        <li><strong>tenant_slug</strong> - Must match an existing tenant slug</li>
+                        <li><strong>product_name</strong> - Required, non-empty</li>
+                        <li><strong>description</strong> - Optional</li>
+                        <li><strong>price_cpm</strong> - Required, positive number</li>
+                        <li><strong>delivery_type</strong> - Required, non-empty (e.g., guaranteed, nonguaranteed)</li>
+                        <li><strong>formats_json</strong> - Optional, valid JSON (e.g., {"sizes": ["300x250"]})</li>
+                        <li><strong>targeting_json</strong> - Optional, valid JSON (e.g., {"geo": ["US", "CA"]})</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> Empty JSON fields will be treated as {}. Maximum file size is 5MB.
+                    </div>
+                </div>
+
+                {% if import_result and import_result.error %}
+                <div class="alert alert-danger">
+                    {{ import_result.error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv,text/csv" required>
+                        <div class="form-text">Select a CSV file to import</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="/products" class="btn btn-secondary">Back to Products</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Import CSV
+                        </button>
+                    </div>
+                </form>
+
+                {% else %}
+                {% if import_result %}
+                <div class="mb-4">
+                    <h4>Import Results</h4>
+                    
+                    {% if import_result.imported_count > 0 %}
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> Imported {{ import_result.imported_count }} product(s) out of {{ import_result.total_rows }} total rows.
+                    </div>
+                    {% endif %}
+                    
+                    {% if import_result.invalid_count > 0 %}
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> {{ import_result.invalid_count }} row(s) had errors and were skipped.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ import_result.total_rows }}</h5>
+                                    <p class="card-text">Total Rows</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title text-success">{{ import_result.imported_count }}</h5>
+                                    <p class="card-text">Imported</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title text-warning">{{ import_result.invalid_count }}</h5>
+                                    <p class="card-text">Failed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if import_result.errors %}
+                <div class="mb-4">
+                    <h5>Error Details</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for error in import_result.errors %}
+                                <tr>
+                                    <td>{{ error.split(':')[0].replace('Row ', '') }}</td>
+                                    <td>{{ error.split(': ', 1)[1] if ': ' in error else error }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <div class="d-flex justify-content-between">
+                    <a href="/products/import" class="btn btn-outline-primary">Import Another File</a>
+                    <a href="/products" class="btn btn-primary">Back to Products</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

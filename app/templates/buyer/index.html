@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Brief - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">
+                        <i class="fa-solid fa-paper-plane me-2"></i>
+                        Submit Buyer Brief
+                    </h2>
+                </div>
+                <div class="card-body">
+                    {% if errors %}
+                        {% for error in errors %}
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" action="/buyer">
+                        <div class="mb-4">
+                            <label for="brief" class="form-label fw-bold">
+                                <i class="fa-solid fa-file-lines me-2"></i>
+                                Brief
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="brief" 
+                                name="brief" 
+                                rows="6" 
+                                placeholder="Describe your advertising needs, target audience, and requirements..."
+                                required
+                            >{{ brief }}</textarea>
+                            <div class="form-text">
+                                Provide a detailed description of your advertising campaign requirements.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-robot me-2"></i>
+                                Agents
+                            </label>
+                            <div class="form-text mb-3">
+                                Select the agents you want to process your brief. All enabled agents are selected by default.
+                            </div>
+                            
+                            <div class="row">
+                                {% for agent in agents %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                name="agents" 
+                                                value="{{ agent.id }}" 
+                                                id="agent_{{ loop.index }}"
+                                                {% if agent.id in selected_agents %}checked{% endif %}
+                                            >
+                                            <label class="form-check-label" for="agent_{{ loop.index }}">
+                                                {{ agent.name }}
+                                                <span class="badge bg-{{ 'primary' if agent.type == 'Sales' else 'info' }} ms-2">
+                                                    {{ agent.type }}
+                                                </span>
+                                                {% if not agent.enabled %}
+                                                    <span class="badge bg-secondary ms-1">Disabled</span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if not agents %}
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                    No agents are currently available. Please contact your administrator.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+                                Submit Brief
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

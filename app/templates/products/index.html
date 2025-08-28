@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Products - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Products</h1>
+    <div>
+        <a href="/products/new" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Product
+        </a>
+        <a href="/products/csv-template" class="btn btn-outline-success">
+            <i class="fas fa-download"></i> CSV Template
+        </a>
+        <a href="/products/import" class="btn btn-outline-info">
+            <i class="fas fa-upload"></i> Import CSV
+        </a>
+    </div>
+</div>
+
+<!-- Search and Sort Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/products">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="q" 
+                           value="{{ search_query }}" placeholder="Search products...">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-control" name="sort">
+                        <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Created</option>
+                        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+                        <option value="price_cpm" {% if sort == 'price_cpm' %}selected{% endif %}>Price</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-control" name="order">
+                        <option value="desc" {% if order == 'desc' %}selected{% endif %}>Descending</option>
+                        <option value="asc" {% if order == 'asc' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    {% if search_query or sort != 'created_at' or order != 'desc' %}
+                    <a href="/products" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="card">
+    <div class="card-body">
+        {% if products %}
+        <form method="POST" action="/products/bulk-delete" id="bulk-delete-form">
+            <input type="hidden" name="product_ids" id="product-ids">
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected products?')">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all" onchange="toggleAllCheckboxes()">
+                            </th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Tenant</th>
+                            <th>Price (CPM)</th>
+                            <th>Delivery Type</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="product-checkbox" value="{{ product.id }}">
+                            </td>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.tenant.name if product.tenant else 'Unknown' }}</td>
+                            <td>${{ "%.2f"|format(product.price_cpm) }}</td>
+                            <td>{{ product.delivery_type }}</td>
+                            <td>{{ product.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="/products/{{ product.id }}/edit" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="POST" action="/products/{{ product.id }}/delete" 
+                                      style="display: inline;" onsubmit="return confirm('Are you sure?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <!-- Pagination -->
+        {% if pagination.total_pages > 1 %}
+        <nav aria-label="Products pagination">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ pagination.previous_url }}">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagination.page_range %}
+                <li class="page-item {% if page_num == pagination.current_page %}active{% endif %}">
+                    <a class="page-link" href="{{ pagination.page_urls[page_num] }}">{{ page_num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ pagination.next_url }}">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        <div class="text-muted text-center">
+            Showing {{ pagination.start_index }}-{{ pagination.end_index }} of {{ pagination.total }} products
+        </div>
+
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-box fa-3x text-muted mb-3"></i>
+            <h4>No products found</h4>
+            <p class="text-muted">
+                {% if search_query %}
+                No products match your search criteria.
+                {% else %}
+                Get started by creating your first product or importing from CSV.
+                {% endif %}
+            </p>
+            <div>
+                <a href="/products/new" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Product
+                </a>
+                <a href="/products/import" class="btn btn-outline-info">
+                    <i class="fas fa-upload"></i> Import CSV
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleAllCheckboxes() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateProductIds();
+}
+
+function updateProductIds() {
+    const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    document.getElementById('product-ids').value = ids.join(',');
+}
+
+// Add event listeners to individual checkboxes
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateProductIds);
+    });
+});
+</script>
+{% endblock %}
+

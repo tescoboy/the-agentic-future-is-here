@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: adcp-demo
+    env: python
+    plan: starter
+    buildCommand: make install
+    startCommand: make start
+    envVars:
+      - key: DB_URL
+        value: sqlite:///./data/adcp_demo.sqlite3
+      - key: SERVICE_BASE_URL
+        value: http://localhost:8000
+      - key: DEBUG
+        value: 0
+    disk:
+      name: data
+      mountPath: ./data
+      sizeGB: 1
+

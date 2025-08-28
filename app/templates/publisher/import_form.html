@@ -1,0 +1,209 @@
+{% extends "publisher/base_pub.html" %}
+
+{% block title %}{{ tenant.name }} - Import Products{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-upload"></i>
+                Import Products from CSV
+            </h1>
+        </div>
+    </div>
+
+    {% if show_form %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-csv"></i>
+                        Upload CSV File
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Select CSV File</label>
+                            <input type="file" class="form-control" id="file" name="file" 
+                                   accept=".csv,text/csv" required>
+                            <div class="form-text">
+                                Maximum file size: 5MB. File must be in CSV format.
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>CSV Format:</strong> Your CSV should include these columns:
+                            <ul class="mb-0 mt-2">
+                                <li><code>name</code> - Product name (required)</li>
+                                <li><code>description</code> - Product description (optional)</li>
+                                <li><code>price_cpm</code> - Price per thousand impressions (required)</li>
+                                <li><code>delivery_type</code> - banner, video, native, audio, display (required)</li>
+                                <li><code>formats_json</code> - JSON string with format specs (optional)</li>
+                                <li><code>targeting_json</code> - JSON string with targeting specs (optional)</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Note:</strong> If your CSV includes a <code>tenant</code> or <code>tenant_id</code> column, 
+                            it will be ignored. All products will be imported for <strong>{{ tenant.name }}</strong>.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/publisher/{{ tenant.slug }}/products" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Import Products
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download"></i>
+                        Sample CSV
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Download a sample CSV file to see the expected format:
+                    </p>
+                    <a href="#" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
+                        <i class="fas fa-download"></i> Download Sample
+                    </a>
+                </div>
+            </div>
+
+            <div class="card bg-light mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Import Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Import products for <strong>{{ tenant.name }}</strong>.
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            Products will be created with the publisher's tenant ID automatically.
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Import Results -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i>
+                        Import Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if import_result.error %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Import Failed:</strong> {{ import_result.error }}
+                    </div>
+                    {% else %}
+                    
+                    {% if import_result.tenant_column_warning %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ import_result.tenant_column_warning }}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ import_result.total_rows }}</h3>
+                                <p class="text-muted">Total Rows</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ import_result.imported_count }}</h3>
+                                <p class="text-muted">Imported</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-danger">{{ import_result.invalid_count }}</h3>
+                                <p class="text-muted">Failed</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">{{ "%.1f"|format((import_result.imported_count / import_result.total_rows * 100) if import_result.total_rows > 0 else 0) }}%</h3>
+                                <p class="text-muted">Success Rate</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if import_result.errors %}
+                    <div class="mt-4">
+                        <h6>Errors:</h6>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for error in import_result.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="/publisher/{{ tenant.slug }}/products/import" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Import Another File
+                        </a>
+                        <a href="/publisher/{{ tenant.slug }}/products" class="btn btn-secondary">
+                            <i class="fas fa-list"></i> View Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function downloadSampleCSV() {
+    const csvContent = `name,description,price_cpm,delivery_type,formats_json,targeting_json
+"Premium Banner","High-quality banner ad",15.50,banner,"{""sizes"": [""300x250"", ""728x90""]}","{""geo"": [""US"", ""CA""]}"
+"Video Ad","Engaging video advertisement",25.00,video,"{""duration"": 30}","{""age"": [18, 65]}"
+"Native Content","Seamless native integration",12.75,native,"{""type"": ""article""}","{""interests"": [""technology""]}"`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_products.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

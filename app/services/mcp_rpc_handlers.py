@@ -1,0 +1,177 @@
+"""MCP JSON-RPC method dispatcher and handlers."""
+
+import logging
+from typing import Dict, Any, List
+from sqlmodel import Session
+
+from app.repos.tenants import get_tenant_by_slug
+from app.repos.products import list_products
+from app.services.ai_client import rank_products_with_ai
+from app.services.sales_contract import get_default_sales_prompt
+
+logger = logging.getLogger(__name__)
+
+
+class MCPRPCError(Exception):
+    """JSON-RPC error with code and message."""
+    
+    def __init__(self, code: int, message: str):
+        self.code = code
+        self.message = message
+        super().__init__(message)
+
+
+async def dispatch(method: str, params: dict, tenant_slug: str, db_session: Session) -> dict:
+    """Dispatch JSON-RPC method calls."""
+    try:
+        if method == "initialize":
+            return _initialize(params)
+        elif method == "notifications/initialized":
+            return _notifications_initialized()
+        elif method == "get_products":
+            return _get_products(tenant_slug, params, db_session)
+        elif method == "rank_products":
+            return await _rank_products(tenant_slug, params, db_session)
+        elif method == "mcp.get_info":
+            return _get_info()
+        else:
+            raise MCPRPCError(-32601, f"method not found: {method}")
+    except MCPRPCError:
+        raise
+    except Exception as e:
+        logger.error(f"Internal error in {method}: {str(e)}")
+        raise MCPRPCError(-32000, "internal server error")
+
+
+def _initialize(params: dict) -> dict:
+    """Handle initialize method."""
+    # Return minimal JSON-RPC result for initialize
+    return {
+        "capabilities": {
+            "get_products": {},
+            "rank_products": {}
+        }
+    }
+
+
+def _notifications_initialized() -> dict:
+    """Handle notifications/initialized as no-op."""
+    # Return empty result for notification
+    return {}
+
+
+def _get_products(tenant_slug: str, params: dict, db_session: Session) -> dict:
+    """Handle get_products method."""
+    # Validate tenant exists
+    tenant = get_tenant_by_slug(db_session, tenant_slug)
+    if not tenant:
+        raise MCPRPCError(-32602, f"tenant '{tenant_slug}' not found")
+    
+    # Get tenant's products
+    products, _ = list_products(db_session, tenant_id=tenant.id)
+    
+    # Convert products to AdCP format
+    formatted_products = []
+    for product in products:
+        formatted_product = {
+            "product_id": str(product.id),
+            "name": product.name,
+            "description": product.description or "",
+            "delivery_type": product.delivery_type,
+            "price_cpm": product.price_cpm,
+        }
+        
+        # Add formats if available
+        if product.formats_json:
+            try:
+                import json
+                formats = json.loads(product.formats_json)
+                formatted_product["formats"] = formats
+            except (json.JSONDecodeError, TypeError):
+                formatted_product["formats"] = []
+        
+        # Add targeting if available
+        if product.targeting_json:
+            try:
+                import json
+                targeting = json.loads(product.targeting_json)
+                formatted_product["targeting"] = targeting
+            except (json.JSONDecodeError, TypeError):
+                formatted_product["targeting"] = {}
+        
+        formatted_products.append(formatted_product)
+    
+    return {"products": formatted_products}
+
+
+async def _rank_products(tenant_slug: str, params: dict, db_session: Session) -> dict:
+    """Handle rank_products method with AI ranking."""
+    # Validate tenant exists
+    tenant = get_tenant_by_slug(db_session, tenant_slug)
+    if not tenant:
+        raise MCPRPCError(-32602, f"tenant '{tenant_slug}' not found")
+    
+    # Validate brief parameter
+    brief = params.get("brief")
+    if not brief or not isinstance(brief, str) or not brief.strip():
+        raise MCPRPCError(-32602, "brief must be a non-empty string")
+    
+    # Get tenant's products
+    products, _ = list_products(db_session, tenant_id=tenant.id)
+    
+    # Resolve prompt: tenant custom prompt or default
+    prompt = tenant.custom_prompt if tenant.custom_prompt else get_default_sales_prompt()
+    prompt_source = "custom" if tenant.custom_prompt else "default"
+    
+    try:
+        # Call AI ranking
+        ranked_items = await rank_products_with_ai(brief.strip(), products, prompt)
+        
+        # Log prompt source (not content)
+        logger.info(f"AI ranking completed: prompt_source={prompt_source}, items={len(ranked_items)}")
+        
+        return {"items": ranked_items}
+        
+    except RuntimeError as e:
+        # Map AI errors to JSON-RPC errors
+        error_msg = str(e)
+        if "GEMINI_API_KEY" in error_msg:
+            raise MCPRPCError(-32000, "AI ranking not configured: GEMINI_API_KEY environment variable is required")
+        elif "brief cannot be empty" in error_msg:
+            raise MCPRPCError(-32602, "brief must be a non-empty string")
+        else:
+            raise MCPRPCError(-32000, f"AI ranking failed: {error_msg}")
+
+
+def _get_info() -> dict:
+    """Handle mcp.get_info method."""
+    return {
+        "service": "adcp-sales",
+        "version": "0.1.0",
+        "capabilities": ["get_products", "rank_products"]
+    }
+
+
+def validate_json_rpc_envelope(data: dict) -> None:
+    """Validate JSON-RPC 2.0 envelope structure."""
+    if not isinstance(data, dict):
+        raise MCPRPCError(-32600, "invalid request: not a JSON object")
+    
+    if data.get("jsonrpc") != "2.0":
+        raise MCPRPCError(-32600, "invalid request: jsonrpc must be '2.0'")
+    
+    if "id" not in data:
+        raise MCPRPCError(-32600, "invalid request: missing id")
+    
+    if "method" not in data:
+        raise MCPRPCError(-32600, "invalid request: missing method")
+    
+    if not isinstance(data["method"], str):
+        raise MCPRPCError(-32600, "invalid request: method must be a string")
+    
+    if "params" not in data:
+        raise MCPRPCError(-32600, "invalid request: missing params")
+    
+    if not isinstance(data["params"], dict):
+        raise MCPRPCError(-32600, "invalid request: params must be an object")
+

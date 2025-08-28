@@ -1,0 +1,100 @@
+{% extends "publisher/base_pub.html" %}
+
+{% block title %}{{ tenant.name }} - Publisher Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tachometer-alt"></i>
+                Publisher Dashboard
+            </h1>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="fas fa-box text-primary"></i>
+                        Products
+                    </h5>
+                    <h2 class="text-primary">{{ product_count }}</h2>
+                    <p class="card-text">Total products in inventory</p>
+                    <a href="/publisher/{{ tenant.slug }}/products" class="btn btn-primary btn-sm">
+                        <i class="fas fa-list"></i> View Products
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="fas fa-upload text-success"></i>
+                        CSV Import
+                    </h5>
+                    <p class="card-text">Bulk import products</p>
+                    <a href="/publisher/{{ tenant.slug }}/products/import" class="btn btn-success btn-sm">
+                        <i class="fas fa-upload"></i> Import CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <i class="fas fa-edit text-info"></i>
+                        Sales Prompt
+                    </h5>
+                    {% if has_custom_prompt %}
+                        <span class="badge bg-success">Custom prompt set</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Using default prompt</span>
+                    {% endif %}
+                    <p class="card-text mt-2">Configure AI sales prompt</p>
+                    <a href="/publisher/{{ tenant.slug }}/prompt" class="btn btn-info btn-sm">
+                        <i class="fas fa-edit"></i> Configure Prompt
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="/publisher/{{ tenant.slug }}/products/new" class="btn btn-primary btn-lg w-100 mb-3">
+                                <i class="fas fa-plus"></i>
+                                Create New Product
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/buyer" class="btn btn-outline-primary btn-lg w-100 mb-3">
+                                <i class="fas fa-shopping-cart"></i>
+                                Test Buyer Experience
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

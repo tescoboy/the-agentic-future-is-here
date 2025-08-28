@@ -1,0 +1,339 @@
+"""Test buyer flow with signals and sales agents."""
+
+import pytest
+from unittest.mock import patch, AsyncMock
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+
+@pytest.fixture
+def mock_tenant():
+    """Create mock tenant."""
+    class MockTenant:
+        def __init__(self):
+            self.id = 1
+            self.name = "Test Tenant"
+            self.slug = "test-tenant"
+    return MockTenant()
+
+
+@pytest.fixture
+def mock_external_agent():
+    """Create mock external agent."""
+    class MockExternalAgent:
+        def __init__(self):
+            self.id = 1
+            self.name = "Test Signals Agent"
+            self.base_url = "http://test-signals.com"
+            self.agent_type = "signals"
+            self.protocol = "mcp"
+            self.enabled = True
+    return MockExternalAgent()
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+def test_buyer_form_loads_with_agents(mock_list_external, mock_list_tenants, mock_tenant, mock_external_agent):
+    """Test that buyer form loads with available agents."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = [mock_external_agent]
+    
+    response = client.get("/buyer")
+    
+    assert response.status_code == 200
+    assert "Submit Buyer Brief" in response.text
+    assert "Test Tenant" in response.text
+    assert "Test Signals Agent" in response.text
+    assert 'value="sales:tenant:1"' in response.text
+    assert 'value="signals:external:1"' in response.text
+
+
+@patch('app.utils.results.get_external_agent_by_id')
+@patch('app.utils.results.get_tenant_by_id')
+@patch('app.services.orchestrator.get_tenant_by_id')
+@patch('app.utils.results.get_product_by_id')
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_submit_sales_only(mock_orchestrate, mock_list_external, mock_list_tenants, mock_get_product, mock_get_tenant_orchestrator, mock_get_tenant_results, mock_get_external_agent, mock_tenant):
+    """Test brief submission with sales agents only."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    # Mock product
+    class MockProduct:
+        def __init__(self):
+            self.id = 1
+            self.name = "Product 1"
+            self.description = "Description 1"
+    mock_get_product.return_value = MockProduct()
+    
+    # Mock tenant lookup
+    mock_get_tenant_orchestrator.return_value = mock_tenant
+    mock_get_tenant_results.return_value = mock_tenant
+    
+    # Mock external agent lookup (not needed for this test but required by parse_agent_selections)
+    mock_get_external_agent.return_value = None
+    
+    mock_orchestrate.return_value = {
+        "results": [{
+            "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"product_id": 1, "reason": "Good match", "score": 0.85}
+            ],
+            "error": None
+        }],
+        "signals": []
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads for sports",
+        "agents": ["sales:tenant:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "Brief Results" in response.text
+    assert "Sales Results" in response.text
+    assert "Signals Results" in response.text
+    assert "Test Tenant" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_submit_signals_only(mock_orchestrate, mock_list_external, mock_list_tenants, mock_external_agent):
+    """Test brief submission with signals agents only."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([], 0)
+    mock_list_external.return_value = [mock_external_agent]
+    
+    mock_orchestrate.return_value = {
+        "results": [],
+        "signals": [{
+            "agent": {"name": "Test Signals Agent", "url": "http://test-signals.com", "type": "signals", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"signal_id": "sig1", "name": "Signal 1", "reason": "Good signal", "score": 0.90}
+            ],
+            "error": None
+        }]
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find audience signals",
+        "agents": ["signals:external:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "Brief Results" in response.text
+    assert "Sales Results" in response.text
+    assert "Signals Results" in response.text
+    assert "Test Signals Agent" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_submit_both_agents(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant, mock_external_agent):
+    """Test brief submission with both sales and signals agents."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = [mock_external_agent]
+    
+    mock_orchestrate.return_value = {
+        "results": [{
+            "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"product_id": 1, "reason": "Good match", "score": 0.85}
+            ],
+            "error": None
+        }],
+        "signals": [{
+            "agent": {"name": "Test Signals Agent", "url": "http://test-signals.com", "type": "signals", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"signal_id": "sig1", "name": "Signal 1", "reason": "Good signal", "score": 0.90}
+            ],
+            "error": None
+        }]
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads and audience signals",
+        "agents": ["sales:tenant:1", "signals:external:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "Brief Results" in response.text
+    assert "Test Tenant" in response.text
+    assert "Test Signals Agent" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+def test_buyer_submit_no_agents(mock_list_external, mock_list_tenants, mock_tenant):
+    """Test brief submission with no agents selected."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads",
+        "agents": []
+    })
+    
+    assert response.status_code == 200
+    assert "Submit Buyer Brief" in response.text  # Form re-rendered
+    assert "At least one agent must be selected" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+def test_buyer_submit_empty_brief(mock_list_external, mock_list_tenants, mock_tenant):
+    """Test brief submission with empty brief."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    response = client.post("/buyer", data={
+        "brief": "",
+        "agents": ["sales:tenant:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "Submit Buyer Brief" in response.text  # Form re-rendered
+    assert "Brief is required and cannot be empty" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_orchestrator_failure(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant):
+    """Test brief submission when orchestrator fails."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    mock_orchestrate.side_effect = Exception("Orchestrator error")
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads",
+        "agents": ["sales:tenant:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "Brief Results" in response.text
+    assert "An error occurred while processing your brief" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_score_filtering(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant):
+    """Test that only items with score >= 70% are displayed."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    mock_orchestrate.return_value = {
+        "results": [{
+            "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"product_id": 1, "reason": "High confidence", "score": 0.85},  # Should show
+                {"product_id": 2, "reason": "Low confidence", "score": 0.65},  # Should not show
+                {"product_id": 3, "reason": "No score", "score": None}  # Should not show
+            ],
+            "error": None
+        }],
+        "signals": []
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads",
+        "agents": ["sales:tenant:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "High confidence" in response.text
+    assert "Low confidence" not in response.text
+    assert "No score" not in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_heat_indicators(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant):
+    """Test that heat indicators are displayed correctly."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = []
+    
+    mock_orchestrate.return_value = {
+        "results": [{
+            "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
+            "ok": True,
+            "items": [
+                {"product_id": 1, "reason": "Test", "score": 0.75},  # 1 flame
+                {"product_id": 2, "reason": "Test", "score": 0.85},  # 2 flames
+                {"product_id": 3, "reason": "Test", "score": 0.95},  # 3 flames
+                {"product_id": 4, "reason": "Test", "score": 0.98},  # 4 flames
+                {"product_id": 5, "reason": "Test", "score": 1.0}    # 5 flames + check
+            ],
+            "error": None
+        }],
+        "signals": []
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads",
+        "agents": ["sales:tenant:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "fa-fire" in response.text
+    assert "fa-check" in response.text
+    assert "Match 75%" in response.text
+    assert "Match 85%" in response.text
+    assert "Match 95%" in response.text
+    assert "Match 98%" in response.text
+    assert "Match 100%" in response.text
+
+
+@patch('app.routes.buyer.list_tenants')
+@patch('app.routes.buyer.list_external_agents')
+@patch('app.routes.buyer.orchestrate_brief')
+def test_buyer_summary_statistics(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant, mock_external_agent):
+    """Test that summary statistics are displayed correctly."""
+    # Setup mocks
+    mock_list_tenants.return_value = ([mock_tenant], 1)
+    mock_list_external.return_value = [mock_external_agent]
+    
+    mock_orchestrate.return_value = {
+        "results": [{
+            "agent": {"name": "Test Tenant", "url": "http://localhost:8000/mcp/agents/test-tenant/rpc", "type": "sales", "protocol": "mcp"},
+            "ok": True,
+            "items": [{"product_id": 1, "reason": "Good match", "score": 0.85}],
+            "error": None
+        }],
+        "signals": [{
+            "agent": {"name": "Test Signals Agent", "url": "http://test-signals.com", "type": "signals", "protocol": "mcp"},
+            "ok": False,
+            "items": None,
+            "error": "Connection failed"
+        }]
+    }
+    
+    response = client.post("/buyer", data={
+        "brief": "Find banner ads and signals",
+        "agents": ["sales:tenant:1", "signals:external:1"]
+    })
+    
+    assert response.status_code == 200
+    assert "1 agents succeeded, 1 failed" in response.text

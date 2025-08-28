@@ -1,0 +1,112 @@
+# AdCP Demo
+
+AdCP Demo with genuine MCP (Model Context Protocol) implementation.
+
+## Quick Start
+
+### Local Development
+
+1. **Setup virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   make install
+   ```
+
+3. **Start the server:**
+   ```bash
+   make start
+   ```
+
+4. **Health check:**
+   ```bash
+   curl http://localhost:8000/health
+   ```
+
+### Development Mode
+
+For development with auto-reload:
+```bash
+make dev
+```
+
+### Testing
+
+Run tests:
+```bash
+make test
+```
+
+Run smoke test:
+```bash
+make smoke
+```
+
+## Make Targets
+
+- `make install` - Install dependencies
+- `make start` - Start production server
+- `make dev` - Start development server with reload
+- `make test` - Run tests
+- `make lint` - Lint code (placeholder)
+- `make fmt` - Format code (placeholder)
+- `make clean` - Clean cache files
+- `make smoke` - Run smoke test against localhost:8000
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_URL` | `sqlite:///./data/adcp_demo.sqlite3` | Database connection URL |
+| `PORT` | `8000` | Server port |
+| `SERVICE_BASE_URL` | `http://localhost:8000` | Service base URL |
+| `DEBUG` | `0` | Debug mode |
+
+## Render Deployment
+
+This project is configured for deployment on Render with:
+
+- **Procfile**: Defines web process
+- **render.yaml**: Complete deployment configuration
+- **Persistent Disk**: `./data` mounted to preserve SQLite database across deploys
+
+### Deployment Steps
+
+1. Connect your repository to Render
+2. Render will automatically detect the `render.yaml` configuration
+3. The service will be deployed with persistent disk for data storage
+
+### Important Notes
+
+- The `./data` directory is mounted as a persistent disk to preserve SQLite data
+- The service binds to `$PORT` for Render compatibility
+- Database file: `./data/adcp_demo.sqlite3`
+
+## Project Structure
+
+```
+/
+├── app/                    # Application code
+│   ├── main.py            # FastAPI app entry point
+│   └── db.py              # Database configuration
+├── tests/                  # Test files
+├── scripts/                # Utility scripts
+├── data/                   # SQLite database (created on startup)
+├── reference/              # Reference repositories (read-only)
+├── requirements.txt        # Python dependencies
+├── Makefile               # Development commands
+├── Procfile               # Render/Heroku deployment
+├── render.yaml            # Render deployment config
+└── README.md              # This file
+```
+
+## Health Endpoint
+
+- **URL**: `GET /health`
+- **Response**: `{"ok": true, "service": "adcp-demo"}`
+- **Purpose**: Monitoring and deployment verification
+

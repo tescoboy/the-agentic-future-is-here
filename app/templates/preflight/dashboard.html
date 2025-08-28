@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Preflight Dashboard - AdCP Demo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fa-solid fa-plane-departure me-2"></i>
+                Preflight Dashboard
+            </h1>
+            
+            <!-- Overall Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-circle-check me-2 {% if data.ok %}text-success{% else %}text-danger{% endif %}"></i>
+                        System Status
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Service Information</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>Service:</strong></td><td>{{ data.service }}</td></tr>
+                                <tr><td><strong>Version:</strong></td><td>{{ data.version }}</td></tr>
+                                <tr><td><strong>Status:</strong></td><td>
+                                    {% if data.ok %}
+                                        <span class="badge bg-success">Ready</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Issues Detected</span>
+                                    {% endif %}
+                                </td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Environment</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>DEBUG:</strong></td><td>{{ data.env.DEBUG }}</td></tr>
+                                <tr><td><strong>DB_URL:</strong></td><td><code>{{ data.env.DB_URL or "Not set" }}</code></td></tr>
+                                <tr><td><strong>SERVICE_BASE_URL:</strong></td><td><code>{{ data.env.SERVICE_BASE_URL or "Not set" }}</code></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Path Checks -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-folder-tree me-2"></i>
+                        Path & File Checks
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Data Directory:</strong></td>
+                                    <td>{% if data.paths.data_dir_exists %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Database File:</strong></td>
+                                    <td>{% if data.paths.db_file_exists %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Database Writeable:</strong></td>
+                                    <td>{% if data.paths.db_writeable %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>MCP Routes Mounted:</strong></td>
+                                    <td>{% if data.paths.mcp_routes_mounted %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reference Repos -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-code-branch me-2"></i>
+                        Reference Repositories
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>{% if data.reference.present %}<span class="badge bg-success">Present</span>{% else %}<span class="badge bg-danger">Missing</span>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Sales Agent:</strong></td>
+                                    <td><code>{{ data.reference.salesagent_commit or "Not found" }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Signals Agent:</strong></td>
+                                    <td><code>{{ data.reference.signalsagent_commit or "Not found" }}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Schema -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-database me-2"></i>
+                        Database Schema
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>External Agents - agent_type:</strong></td>
+                                    <td>{% if data.db_schema.external_agents_has_agent_type %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>External Agents - protocol:</strong></td>
+                                    <td>{% if data.db_schema.external_agents_has_protocol %}<i class="fa-solid fa-check text-success"></i>{% else %}<i class="fa-solid fa-times text-danger"></i>{% endif %}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-robot me-2"></i>
+                        Enabled Agents
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Sales Agents</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>REST:</strong></td><td>{{ data.agents.enabled_sales.rest }}</td></tr>
+                                <tr><td><strong>MCP:</strong></td><td>{{ data.agents.enabled_sales.mcp }}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Signals Agents</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>REST:</strong></td><td>{{ data.agents.enabled_signals.rest }}</td></tr>
+                                <tr><td><strong>MCP:</strong></td><td>{{ data.agents.enabled_signals.mcp }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tenants -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-building me-2"></i>
+                        Tenants
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr><td><strong>Total Count:</strong></td><td>{{ data.tenants.count }}</td></tr>
+                                <tr><td><strong>With Custom Prompts:</strong></td><td>{{ data.tenants.with_custom_prompts }}</td></tr>
+                                <tr><td><strong>Using Default Prompts:</strong></td><td>{{ data.tenants.using_default_prompts }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-cog me-2"></i>
+                        Configuration
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Orchestrator Settings</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>Timeout (ms):</strong></td><td>{{ data.env.ORCH_TIMEOUT_MS_DEFAULT }}</td></tr>
+                                <tr><td><strong>Concurrency:</strong></td><td>{{ data.env.ORCH_CONCURRENCY }}</td></tr>
+                                <tr><td><strong>Circuit Breaker Fails:</strong></td><td>{{ data.env.CB_FAILS }}</td></tr>
+                                <tr><td><strong>Circuit Breaker TTL (s):</strong></td><td>{{ data.env.CB_TTL_S }}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>MCP Settings</h5>
+                            <table class="table table-sm">
+                                <tr><td><strong>Session TTL (s):</strong></td><td>{{ data.env.MCP_SESSION_TTL_S }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
