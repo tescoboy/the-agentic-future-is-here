@@ -34,9 +34,15 @@ def run_embeddings_migrations(session: Session) -> None:
 def _add_embeddings_metadata_columns(session: Session) -> None:
     """Add metadata columns to product_embeddings table."""
     conn = session.connection().connection
+    cursor = conn.cursor()
+    
+    # Check if table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='product_embeddings'")
+    if not cursor.fetchone():
+        logger.info("product_embeddings table doesn't exist yet - will be created when first embedding is generated")
+        return
     
     # Check if columns already exist
-    cursor = conn.cursor()
     cursor.execute("PRAGMA table_info(product_embeddings)")
     columns = [row[1] for row in cursor.fetchall()]
     
@@ -59,6 +65,12 @@ def _create_embeddings_indexes(session: Session) -> None:
     """Create indexes for embeddings performance."""
     conn = session.connection().connection
     cursor = conn.cursor()
+    
+    # Check if table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='product_embeddings'")
+    if not cursor.fetchone():
+        logger.info("product_embeddings table doesn't exist yet - skipping index creation")
+        return
     
     # Check existing indexes
     cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='product_embeddings'")
@@ -86,6 +98,12 @@ def _migrate_existing_embeddings(session: Session) -> None:
     """Migrate existing embeddings to new schema."""
     conn = session.connection().connection
     cursor = conn.cursor()
+    
+    # Check if table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='product_embeddings'")
+    if not cursor.fetchone():
+        logger.info("product_embeddings table doesn't exist yet - skipping migration")
+        return
     
     # Check if we have existing embeddings to migrate
     cursor.execute("SELECT COUNT(*) FROM product_embeddings WHERE provider IS NULL")
