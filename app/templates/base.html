@@ -49,6 +49,11 @@
                             <i class="fas fa-shopping-cart"></i> Buyer
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/backup/">
+                            <i class="fas fa-database"></i> Backup
+                        </a>
+                    </li>
                 </ul>
                 <!-- Tenant context badge -->
                 {% if request.state.tenant and not request.url.path.startswith('/buyer') %}
