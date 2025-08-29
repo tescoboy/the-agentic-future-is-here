@@ -96,3 +96,4 @@ Use the smoke script to test MCP connectivity:
 
 Set `DEBUG=1` to enable additional logging and probe endpoints.
 
+

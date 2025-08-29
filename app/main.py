@@ -11,10 +11,13 @@ from fastapi.staticfiles import StaticFiles
 import os
 from pathlib import Path
 
-from app.db import ensure_database, create_all_tables
+from app.db import ensure_database, create_all_tables, get_session
+from app.models import Tenant, Product, ExternalAgent  # Import models to register them
 from app.utils.migrations import run_migrations
 from app.utils.reference_validator import validate_reference_repos
-from app.routes import tenants, external_agents, products, mcp_rpc, buyer, preflight, tenant_switch, publisher, publishers
+from app.utils.rag_migrations import run_rag_startup_checks
+from app.routes import tenants, external_agents, products, mcp_rpc, buyer, tenant_switch, publisher, publishers
+from app.routes.preflight import router as preflight_router
 from app.middleware.tenant_middleware import TenantMiddleware
 
 # Configure logging
@@ -28,11 +31,12 @@ app = FastAPI(
     version="0.1.0"
 )
 
+# Configure templates and static files
+templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 # Add tenant middleware
 app.add_middleware(TenantMiddleware)
-
-# Configure templates
-templates = Jinja2Templates(directory="app/templates")
 
 # Include routers
 app.include_router(tenants.router)
@@ -40,7 +44,7 @@ app.include_router(products.router)
 app.include_router(external_agents.router)
 app.include_router(mcp_rpc.router)
 app.include_router(buyer.router)
-app.include_router(preflight.router)
+app.include_router(preflight_router)
 app.include_router(tenant_switch.router)
 app.include_router(publisher.router)
 app.include_router(publishers.router)
@@ -67,6 +71,23 @@ async def startup_event():
         # 5. Initialize database connection
         ensure_database()
         
+        # 6. Run RAG startup checks (after database tables are created)
+        try:
+            session = next(get_session())
+            # Check if product table exists before running RAG checks
+            from sqlalchemy import text
+            result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='product'"))
+            if result.fetchone():
+                run_rag_startup_checks(session)
+                logger.info("RAG startup checks completed successfully")
+            else:
+                logger.warning("Product table not found, skipping RAG startup checks")
+        except Exception as e:
+            logger.warning(f"RAG startup checks failed (will retry later): {e}")
+        finally:
+            if 'session' in locals():
+                session.close()
+        
     except Exception as e:
         # Log the error and re-raise to prevent startup
         logger.error(f"Startup failed: {str(e)}")
@@ -85,6 +106,45 @@ async def health_check():
     return {
         "ok": True,
         "service": "adcp-demo"
+    }
+
+
+@app.get("/test-rag/{tenant_slug}")
+async def test_rag(tenant_slug: str, brief: str = "eco-conscious"):
+    """Test RAG pre-filter functionality."""
+    try:
+        from app.repos.tenants import get_tenant_by_slug
+        from app.services.product_rag import filter_products_for_brief
+        from app.db import get_session
+        
+        session = next(get_session())
+        tenant = get_tenant_by_slug(session, tenant_slug)
+        if not tenant:
+            return {"error": f"Tenant '{tenant_slug}' not found"}
+        
+        candidates = await filter_products_for_brief(session, tenant.id, brief, 5)
+        
+        return {
+            "tenant": tenant_slug,
+            "brief": brief,
+            "candidates_count": len(candidates),
+            "candidates": [{"product_id": c["product_id"], "name": c["name"], "score": c.get("rag_score", c.get("fts_score", 0))} for c in candidates[:3]]
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/test-env")
+async def test_env():
+    """Test environment variable availability."""
+    import os
+    from app.utils.env import get_gemini_api_key
+    
+    return {
+        "GEMINI_API_KEY_in_os_environ": "GEMINI_API_KEY" in os.environ,
+        "GEMINI_API_KEY_value": os.environ.get("GEMINI_API_KEY", "")[:10] + "..." if os.environ.get("GEMINI_API_KEY") else None,
+        "get_gemini_api_key_available": get_gemini_api_key() is not None,
+        "get_gemini_api_key_value": get_gemini_api_key()[:10] + "..." if get_gemini_api_key() else None
     }
 
 

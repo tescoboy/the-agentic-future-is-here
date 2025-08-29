@@ -1,0 +1,270 @@
+"""
+Vector embeddings management for RAG implementation using Gemini.
+Copied from reference/signals-agent at commit ce1081c
+Repository: https://github.com/adcontextprotocol/signals-agent
+
+Provides vector embedding generation and similarity search for products.
+"""
+
+import sqlite3
+import json
+import numpy as np
+from typing import List, Dict, Any, Optional
+import asyncio
+from sqlalchemy.orm import Session
+from app.models import Product
+from app.utils.env import get_gemini_api_key
+
+# Constants copied from signals-agent
+EMBEDDING_DIMENSION = 768  # text-embedding-004 produces 768-dim vectors
+
+
+async def batch_embed_text(texts: List[str]) -> List[List[float]]:
+    """
+    Generate embeddings for a batch of texts using Gemini.
+    Copied from signals-agent/embeddings.py generate_embedding()
+    
+    Args:
+        texts: List of texts to embed
+        
+    Returns:
+        List of embedding vectors (768-dimensional)
+        
+    Raises:
+        ValueError: If Gemini API key is missing
+    """
+    try:
+        import google.generativeai as genai
+        
+        api_key = get_gemini_api_key()
+        if not api_key:
+            raise ValueError("Gemini API key is required for embeddings")
+        
+        genai.configure(api_key=api_key)
+        
+        embeddings = []
+        for text in texts:
+            # Generate embedding using Gemini
+            result = genai.embed_content(
+                model="models/text-embedding-004",
+                content=text,
+                task_type="retrieval_query"
+            )
+            
+            # Extract embedding vector
+            embedding = result['embedding']
+            embeddings.append(embedding)
+        
+        return embeddings
+        
+    except Exception as e:
+        raise ValueError(f"Failed to generate embeddings: {e}")
+
+
+async def upsert_product_embeddings(session: Session, product_id: int, embedding: List[float]) -> None:
+    """
+    Store or update product embedding in the database.
+    
+    Args:
+        session: Database session
+        product_id: Product ID
+        embedding: Embedding vector (768-dimensional)
+    """
+    # Convert embedding to bytes for storage
+    embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
+    
+    # Use raw SQL for embedding storage
+    conn = session.connection().connection
+    
+    # Create embeddings table if it doesn't exist
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS product_embeddings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id INTEGER UNIQUE NOT NULL,
+            embedding_text TEXT NOT NULL,
+            embedding_hash TEXT NOT NULL,
+            embedding BLOB NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES product(id)
+        )
+    ''')
+    
+    # Create index for faster lookups
+    conn.execute('''
+        CREATE INDEX IF NOT EXISTS idx_product_embeddings_product_id 
+        ON product_embeddings(product_id)
+    ''')
+    
+    # Note: vec0 virtual table creation removed - using basic cosine similarity instead
+    
+    # Get product text for embedding
+    product = session.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        return
+    
+    # Create embedding text (name + description)
+    embedding_text = f"{product.name}\n{product.description}"
+    
+    # Create hash for change detection
+    import hashlib
+    embedding_hash = hashlib.md5(embedding_text.encode()).hexdigest()
+    
+    # Check if embedding already exists and is up to date
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT embedding_hash FROM product_embeddings WHERE product_id = ?",
+        (product_id,)
+    )
+    existing = cursor.fetchone()
+    
+    if existing and existing[0] == embedding_hash:
+        # Embedding is up to date
+        return
+    
+    # Insert or update embedding
+    cursor.execute('''
+        INSERT OR REPLACE INTO product_embeddings 
+        (product_id, embedding_text, embedding_hash, embedding)
+        VALUES (?, ?, ?, ?)
+    ''', (product_id, embedding_text, embedding_hash, embedding_bytes))
+    
+    # Note: vec0 vector table update removed - using basic cosine similarity instead
+    
+    conn.commit()
+
+
+async def query_similar_embeddings(session: Session, tenant_id: int, query_embedding: List[float], limit: int) -> List[Dict[str, Any]]:
+    """
+    Find products with similar embeddings using cosine similarity.
+    
+    Args:
+        session: Database session
+        tenant_id: Tenant ID to filter products
+        query_embedding: Query embedding vector
+        limit: Maximum number of results
+        
+    Returns:
+        List of product dicts with similarity scores
+    """
+    try:
+        # Use raw SQL to get all embeddings for the tenant
+        conn = session.connection().connection
+        cursor = conn.cursor()
+        
+        # Get all products with embeddings for this tenant
+        cursor.execute('''
+            SELECT p.id, p.name, p.description, p.price_cpm, p.delivery_type,
+                   p.formats_json, p.targeting_json, pe.embedding
+            FROM product_embeddings pe
+            JOIN product p ON pe.product_id = p.id
+            WHERE p.tenant_id = ?
+        ''', (tenant_id,))
+        
+        results = []
+        for row in cursor.fetchall():
+            product_id, name, description, price_cpm, delivery_type, formats_json, targeting_json, embedding_bytes = row
+            
+            # Convert embedding bytes back to list
+            embedding_array = np.frombuffer(embedding_bytes, dtype=np.float32)
+            embedding_list = embedding_array.tolist()
+            
+            # Calculate cosine similarity
+            similarity = _cosine_similarity(query_embedding, embedding_list)
+            
+            result = {
+                'product_id': product_id,
+                'name': name,
+                'description': description,
+                'price_cpm': price_cpm,
+                'delivery_type': delivery_type,
+                'formats_json': formats_json,
+                'targeting_json': targeting_json,
+                'similarity_score': similarity
+            }
+            results.append(result)
+        
+        # Sort by similarity score (descending) and limit results
+        results.sort(key=lambda x: x['similarity_score'], reverse=True)
+        return results[:limit]
+        
+    except Exception as e:
+        # Fall back to simple text search if vector search fails
+        return await _fallback_text_search(session, tenant_id, limit)
+
+
+def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
+    """
+    Calculate cosine similarity between two vectors.
+    
+    Args:
+        vec1: First vector
+        vec2: Second vector
+        
+    Returns:
+        Cosine similarity score (0-1)
+    """
+    try:
+        # Convert to numpy arrays
+        a = np.array(vec1)
+        b = np.array(vec2)
+        
+        # Calculate cosine similarity
+        dot_product = np.dot(a, b)
+        norm_a = np.linalg.norm(a)
+        norm_b = np.linalg.norm(b)
+        
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        
+        return float(dot_product / (norm_a * norm_b))
+    except Exception:
+        return 0.0
+
+
+async def _fallback_text_search(session: Session, tenant_id: int, limit: int) -> List[Dict[str, Any]]:
+    """
+    Fallback text search when vector search is not available.
+    
+    Args:
+        session: Database session
+        tenant_id: Tenant ID to filter products
+        limit: Maximum number of results
+        
+    Returns:
+        List of product dicts with similarity scores
+    """
+    products = session.query(Product).filter(Product.tenant_id == tenant_id).limit(limit).all()
+    
+    results = []
+    for product in products:
+        result = {
+            'product_id': product.id,
+            'name': product.name,
+            'description': product.description,
+            'price_cpm': product.price_cpm,
+            'delivery_type': product.delivery_type,
+            'formats_json': product.formats_json,
+            'targeting_json': product.targeting_json,
+            'similarity_score': 0.5  # Default fallback score
+        }
+        results.append(result)
+    
+    return results
+
+
+async def generate_product_embedding(product: Product) -> List[float]:
+    """
+    Generate embedding for a single product.
+    
+    Args:
+        product: Product model instance
+        
+    Returns:
+        Embedding vector (768-dimensional)
+    """
+    # Create embedding text (name + description)
+    embedding_text = f"{product.name}\n{product.description}"
+    
+    # Generate embedding
+    embeddings = await batch_embed_text([embedding_text])
+    return embeddings[0] if embeddings else []

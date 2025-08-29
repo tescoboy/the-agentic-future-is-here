@@ -1,0 +1,1197 @@
+{
+  "eco-conscious sustainable green": {
+    "tenant": "netflix",
+    "brief": "eco-conscious sustainable green",
+    "rag_results": {
+      "strategy": "rag",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 77,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 57.48,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5046102507105619,
+          "rag_score": 0.5046102507105619,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 144,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 87.48,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5046102507105619,
+          "rag_score": 0.5046102507105619,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 379,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "description": "Premium brand alignment with Our Planet, documentary series appealing to eco-conscious families and educators. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 40.72,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5017617695114911,
+          "rag_score": 0.5017617695114911,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 274,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "description": "Premium brand alignment with Our Planet, documentary series appealing to eco-conscious families and educators. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 90.85,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.49648345943721,
+          "rag_score": 0.49648345943721,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 323,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "description": "Premium brand alignment with Our Planet, documentary series appealing to eco-conscious families and educators. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 85.31,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.49648345943721,
+          "rag_score": 0.49648345943721,
+          "match_reason": "semantic_similarity"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 77,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 0.6055323008526742,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 144,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 0.6055323008526742,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 379,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "score": 0.6021141234137893,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 274,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "score": 0.595780151324652,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 323,
+          "name": "Netflix Our Planet Special Sponsorship",
+          "score": 0.595780151324652,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [],
+      "total_items": 5,
+      "passed_threshold": 0,
+      "score_distribution": {
+        "min": 0.595780151324652,
+        "max": 0.6055323008526742,
+        "avg": 0.6009478055536883
+      }
+    }
+  },
+  "luxury premium high-end": {
+    "tenant": "netflix",
+    "brief": "luxury premium high-end",
+    "rag_results": {
+      "strategy": "rag",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 309,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 67.03,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.50877681731589,
+          "rag_score": 0.50877681731589,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 411,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 93.35,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.50877681731589,
+          "rag_score": 0.50877681731589,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 330,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 73.01,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.500682460686076,
+          "rag_score": 0.500682460686076,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 374,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 36.47,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.500682460686076,
+          "rag_score": 0.500682460686076,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 354,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Perfect for advertisers looking to capture cultural moments with guaranteed reach.",
+          "price_cpm": 93.59,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5004402683287607,
+          "rag_score": 0.5004402683287607,
+          "match_reason": "semantic_similarity"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 309,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6105321807790679,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 411,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6105321807790679,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 330,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6008189528232912,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 374,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6008189528232912,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 354,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6005283219945128,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [],
+      "total_items": 5,
+      "passed_threshold": 0,
+      "score_distribution": {
+        "min": 0.6005283219945128,
+        "max": 0.6105321807790679,
+        "avg": 0.6046461178398462
+      }
+    }
+  },
+  "health wellness fitness": {
+    "tenant": "netflix",
+    "brief": "health wellness fitness",
+    "rag_results": {
+      "strategy": "rag",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 394,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "description": "Prominent placement across Netflix titles featuring Dwayne Johnson, integration across Netflix action films starring Dwayne Johnson, perfect for young male audiences. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 55.71,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.3841084994203668,
+          "rag_score": 0.3841084994203668,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 286,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "description": "Prominent placement across Netflix titles featuring Dwayne Johnson, integration across Netflix action films starring Dwayne Johnson, perfect for young male audiences. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 83.77,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.3807611883107525,
+          "rag_score": 0.3807611883107525,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 480,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "description": "Prominent placement across Netflix titles featuring Dwayne Johnson, integration across Netflix action films starring Dwayne Johnson, perfect for young male audiences. Perfect for advertisers looking to capture cultural moments with guaranteed reach.",
+          "price_cpm": 65.83,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.3805955899736344,
+          "rag_score": 0.3805955899736344,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 37,
+          "name": "Netflix Dwayne Johnson Collection",
+          "description": "Integration across Netflix titles featuring Dwayne Johnson, integration across Netflix action films starring Dwayne Johnson, perfect for young male audiences. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 85.13,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.3792171531562743,
+          "rag_score": 0.3792171531562743,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 102,
+          "name": "Netflix Dwayne Johnson Collection",
+          "description": "Integration across Netflix titles featuring Dwayne Johnson, integration across Netflix action films starring Dwayne Johnson, perfect for young male audiences. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 92.07,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.3792171531562743,
+          "rag_score": 0.3792171531562743,
+          "match_reason": "semantic_similarity"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 394,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "score": 0.4609301993044401,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 286,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "score": 0.45691342597290296,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 480,
+          "name": "Netflix Dwayne Johnson Spotlight Series",
+          "score": 0.4567147079683613,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 37,
+          "name": "Netflix Dwayne Johnson Collection",
+          "score": 0.4550605837875291,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 102,
+          "name": "Netflix Dwayne Johnson Collection",
+          "score": 0.4550605837875291,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [],
+      "total_items": 5,
+      "passed_threshold": 0,
+      "score_distribution": {
+        "min": 0.4550605837875291,
+        "max": 0.4609301993044401,
+        "avg": 0.45693590016415253
+      }
+    }
+  },
+  "Netflix AND documentary": {
+    "tenant": "netflix",
+    "brief": "Netflix AND documentary",
+    "rag_results": {
+      "strategy": "fts",
+      "use_expansion": false,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 1,
+          "name": "Netflix Stranger Things Exclusive",
+          "description": "Exclusive sponsorship alongside Stranger Things, Netflix\u2019s global sci-fi phenomenon. Reaches diverse audiences in a premium entertainment environment.",
+          "price_cpm": 94.8,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 2,
+          "name": "Netflix Bridgerton Spotlight",
+          "description": "Align with Bridgerton, Netflix\u2019s romance hit with an international fanbase. Delivers cultural impact and strong engagement across households.",
+          "price_cpm": 44.85,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "description": "Placement within Netflix\u2019s sports documentaries and original series. Perfect for advertisers looking to align with prestige Netflix content.",
+          "price_cpm": 49.56,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 4,
+          "name": "Netflix Tennis Grand Slam Coverage",
+          "description": "Exclusive sponsorship of tennis documentaries and coverage of Grand Slam events. Reaches diverse audiences in a premium entertainment environment.",
+          "price_cpm": 84.42,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 5,
+          "name": "Netflix True Crime Collection",
+          "description": "Sponsorship of Netflix\u2019s true crime catalog including Making a Murderer and The Tinder Swindler. Optimized for binge-viewing on connected TVs with global reach.",
+          "price_cpm": 86.87,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 1,
+          "name": "Netflix Stranger Things Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 2,
+          "name": "Netflix Bridgerton Spotlight",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 4,
+          "name": "Netflix Tennis Grand Slam Coverage",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 5,
+          "name": "Netflix True Crime Collection",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [
+        {
+          "product_id": 1,
+          "name": "Netflix Stranger Things Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 2,
+          "name": "Netflix Bridgerton Spotlight",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 4,
+          "name": "Netflix Tennis Grand Slam Coverage",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 5,
+          "name": "Netflix True Crime Collection",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "total_items": 5,
+      "passed_threshold": 5,
+      "score_distribution": {
+        "min": 1.0,
+        "max": 1.0,
+        "avg": 1.0
+      }
+    }
+  },
+  "sports OR fitness": {
+    "tenant": "netflix",
+    "brief": "sports OR fitness",
+    "rag_results": {
+      "strategy": "fts",
+      "use_expansion": false,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "description": "Placement within Netflix\u2019s sports documentaries and original series. Perfect for advertisers looking to align with prestige Netflix content.",
+          "price_cpm": 49.56,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 25,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "description": "Exclusive sponsorship alongside Formula 1: Drive to Survive, sports docuseries that reaches motorsport enthusiasts and young professionals. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 33.46,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 31,
+          "name": "Netflix Break Point Exclusive",
+          "description": "Exclusive sponsorship alongside Break Point, tennis docuseries perfect for fans of Grand Slam events and aspirational sports stories. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 58.08,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 42,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "description": "Exclusive sponsorship alongside Formula 1: Drive to Survive, sports docuseries that reaches motorsport enthusiasts and young professionals. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 73.6,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 63,
+          "name": "Netflix Break Point Exclusive",
+          "description": "Exclusive sponsorship alongside Break Point, tennis docuseries perfect for fans of Grand Slam events and aspirational sports stories. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 74.18,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 25,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 31,
+          "name": "Netflix Break Point Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 42,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 63,
+          "name": "Netflix Break Point Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [
+        {
+          "product_id": 3,
+          "name": "Netflix Global Sports Stories",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 25,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 31,
+          "name": "Netflix Break Point Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 42,
+          "name": "Netflix Formula 1: Drive to Survive Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 63,
+          "name": "Netflix Break Point Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "total_items": 5,
+      "passed_threshold": 5,
+      "score_distribution": {
+        "min": 1.0,
+        "max": 1.0,
+        "avg": 1.0
+      }
+    }
+  },
+  "\"Our Planet\"": {
+    "tenant": "netflix",
+    "brief": "\"Our Planet\"",
+    "rag_results": {
+      "strategy": "fts",
+      "use_expansion": false,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 33,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 42.44,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 34,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Delivers high engagement on connected TVs in premium environments.",
+          "price_cpm": 34.09,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 54,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Delivers high engagement on connected TVs in premium environments.",
+          "price_cpm": 83.28,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 77,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 57.48,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        },
+        {
+          "product_id": 109,
+          "name": "Netflix Our Planet Exclusive",
+          "description": "Exclusive sponsorship alongside Our Planet, documentary series appealing to eco-conscious families and educators. Perfect for advertisers looking to capture cultural moments with guaranteed reach.",
+          "price_cpm": 80.97,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "relevance_score": 1.0,
+          "fts_score": 1.0,
+          "match_reason": "text_match"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 33,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 34,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 54,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 77,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 109,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [
+        {
+          "product_id": 33,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 34,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 54,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 77,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        },
+        {
+          "product_id": 109,
+          "name": "Netflix Our Planet Exclusive",
+          "score": 1.0,
+          "reason": "AI ranked based on text_match relevance"
+        }
+      ],
+      "total_items": 5,
+      "passed_threshold": 5,
+      "score_distribution": {
+        "min": 1.0,
+        "max": 1.0,
+        "avg": 1.0
+      }
+    }
+  },
+  "age 25-35 parents": {
+    "tenant": "netflix",
+    "brief": "age 25-35 parents",
+    "rag_results": {
+      "strategy": "hybrid",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 10,
+          "name": "Netflix YA & Romance Stories",
+          "description": "Target young adults with popular titles like Heartstopper and Emily in Paris. Ideal for campaigns seeking scale and high viewer attention.",
+          "price_cpm": 35.72,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.42275938581059486,
+          "rag_score": 0.42275938581059486,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.5959315700674164
+        },
+        {
+          "product_id": 141,
+          "name": "Netflix Family Animation Package",
+          "description": "Curated bundle of Netflix\u2019s family animation content, integration with family-friendly animated hits for parents with children. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 50.9,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.47117529685116943,
+          "rag_score": 0.47117529685116943,
+          "match_reason": "semantic_similarity",
+          "fts_score": 0,
+          "combined_score": 0.32982270779581857
+        },
+        {
+          "product_id": 46,
+          "name": "Netflix Family Animation Package",
+          "description": "Curated bundle of Netflix\u2019s family animation content, integration with family-friendly animated hits for parents with children. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 66.58,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.47037232143129865,
+          "rag_score": 0.47037232143129865,
+          "match_reason": "semantic_similarity",
+          "fts_score": 0,
+          "combined_score": 0.32926062500190906
+        },
+        {
+          "product_id": 104,
+          "name": "Netflix Family Animation Package",
+          "description": "Curated bundle of Netflix\u2019s family animation content, integration with family-friendly animated hits for parents with children. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 93.46,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.47037232143129865,
+          "rag_score": 0.47037232143129865,
+          "match_reason": "semantic_similarity",
+          "fts_score": 0,
+          "combined_score": 0.32926062500190906
+        },
+        {
+          "product_id": 112,
+          "name": "Netflix Family Animation Package",
+          "description": "Curated bundle of Netflix\u2019s family animation content, integration with family-friendly animated hits for parents with children. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 63.09,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.47037232143129865,
+          "rag_score": 0.47037232143129865,
+          "match_reason": "semantic_similarity",
+          "fts_score": 0,
+          "combined_score": 0.32926062500190906
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 10,
+          "name": "Netflix YA & Romance Stories",
+          "score": 0.7151178840808996,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 141,
+          "name": "Netflix Family Animation Package",
+          "score": 0.3957872493549823,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 46,
+          "name": "Netflix Family Animation Package",
+          "score": 0.39511275000229085,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 104,
+          "name": "Netflix Family Animation Package",
+          "score": 0.39511275000229085,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 112,
+          "name": "Netflix Family Animation Package",
+          "score": 0.39511275000229085,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [
+        {
+          "product_id": 10,
+          "name": "Netflix YA & Romance Stories",
+          "score": 0.7151178840808996,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "total_items": 5,
+      "passed_threshold": 1,
+      "score_distribution": {
+        "min": 0.39511275000229085,
+        "max": 0.7151178840808996,
+        "avg": 0.4592486766885509
+      }
+    }
+  },
+  "urban professionals": {
+    "tenant": "netflix",
+    "brief": "urban professionals",
+    "rag_results": {
+      "strategy": "hybrid",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 13,
+          "name": "Netflix Drama Prestige Collection Package",
+          "description": "Curated bundle of Netflix\u2019s drama prestige collection content, association with award-winning dramas appealing to professionals and decision-makers. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 65.57,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.46170808770711197,
+          "rag_score": 0.46170808770711197,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.6231956613949784
+        },
+        {
+          "product_id": 14,
+          "name": "Netflix Drama Prestige Collection Package",
+          "description": "Curated bundle of Netflix\u2019s drama prestige collection content, association with award-winning dramas appealing to professionals and decision-makers. Optimized for awareness and brand-building campaigns.",
+          "price_cpm": 45.19,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.46170808770711197,
+          "rag_score": 0.46170808770711197,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.6231956613949784
+        },
+        {
+          "product_id": 62,
+          "name": "Netflix Drama Prestige Collection Package",
+          "description": "Curated bundle of Netflix\u2019s drama prestige collection content, association with award-winning dramas appealing to professionals and decision-makers. Perfect for advertisers looking to capture cultural moments with guaranteed reach.",
+          "price_cpm": 99.41,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.4551358786874971,
+          "rag_score": 0.4551358786874971,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.618595115081248
+        },
+        {
+          "product_id": 30,
+          "name": "Netflix Drama Prestige Collection Package",
+          "description": "Curated bundle of Netflix\u2019s drama prestige collection content, association with award-winning dramas appealing to professionals and decision-makers. Delivers high engagement on connected TVs in premium environments.",
+          "price_cpm": 75.12,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.436912827975618,
+          "rag_score": 0.436912827975618,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.6058389795829326
+        },
+        {
+          "product_id": 82,
+          "name": "Netflix Drama Prestige Collection Package",
+          "description": "Curated bundle of Netflix\u2019s drama prestige collection content, association with award-winning dramas appealing to professionals and decision-makers. Delivers high engagement on connected TVs in premium environments.",
+          "price_cpm": 78.19,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.436912827975618,
+          "rag_score": 0.436912827975618,
+          "match_reason": "semantic_similarity",
+          "fts_score": 1.0,
+          "combined_score": 0.6058389795829326
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 13,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7478347936739741,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 14,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7478347936739741,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 62,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7423141380974976,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 30,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7270067754995192,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 82,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7270067754995192,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [
+        {
+          "product_id": 13,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7478347936739741,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 14,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7478347936739741,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 62,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7423141380974976,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 30,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7270067754995192,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 82,
+          "name": "Netflix Drama Prestige Collection Package",
+          "score": 0.7270067754995192,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "total_items": 5,
+      "passed_threshold": 5,
+      "score_distribution": {
+        "min": 0.7270067754995192,
+        "max": 0.7478347936739741,
+        "avg": 0.7383994552888968
+      }
+    }
+  },
+  "affluent families": {
+    "tenant": "netflix",
+    "brief": "affluent families",
+    "rag_results": {
+      "strategy": "rag",
+      "use_expansion": true,
+      "candidates_count": 10,
+      "candidates": [
+        {
+          "product_id": 309,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 67.03,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5131021423706321,
+          "rag_score": 0.5131021423706321,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 411,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "description": "Branded integration into Netflix\u2019s drama prestige collection library, association with award-winning dramas appealing to professionals and decision-makers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 93.35,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5131021423706321,
+          "rag_score": 0.5131021423706321,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 146,
+          "name": "Netflix The Crown Exclusive",
+          "description": "Exclusive sponsorship alongside The Crown, prestige drama attracting educated, affluent viewers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 36.94,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.513049842580568,
+          "rag_score": 0.513049842580568,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 215,
+          "name": "Netflix The Crown Exclusive",
+          "description": "Exclusive sponsorship alongside The Crown, prestige drama attracting educated, affluent viewers. Connects brands with diverse households and global streaming audiences.",
+          "price_cpm": 83.22,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.513049842580568,
+          "rag_score": 0.513049842580568,
+          "match_reason": "semantic_similarity"
+        },
+        {
+          "product_id": 439,
+          "name": "Netflix The Crown Special Sponsorship",
+          "description": "Premium brand alignment with The Crown, prestige drama attracting educated, affluent viewers. Reaches loyal fandoms with strong purchase influence.",
+          "price_cpm": 97.41,
+          "delivery_type": "guaranteed",
+          "formats_json": "[\"video\",\"ctv\"]",
+          "targeting_json": "{\"geo_country_any_of\":[\"US\",\"CA\",\"GB\",\"AU\",\"Global\"],\"device_type_any_of\":[\"CTV\"]}",
+          "similarity_score": 0.5115765222570595,
+          "rag_score": 0.5115765222570595,
+          "match_reason": "semantic_similarity"
+        }
+      ]
+    },
+    "ai_results": {
+      "ranked_items": [
+        {
+          "product_id": 309,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6157225708447586,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 411,
+          "name": "Netflix Drama Prestige Collection Spotlight",
+          "score": 0.6157225708447586,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 146,
+          "name": "Netflix The Crown Exclusive",
+          "score": 0.6156598110966816,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 215,
+          "name": "Netflix The Crown Exclusive",
+          "score": 0.6156598110966816,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        },
+        {
+          "product_id": 439,
+          "name": "Netflix The Crown Special Sponsorship",
+          "score": 0.6138918267084714,
+          "reason": "AI ranked based on semantic_similarity relevance"
+        }
+      ],
+      "ai_available": true
+    },
+    "threshold_results": {
+      "filtered_items": [],
+      "total_items": 5,
+      "passed_threshold": 0,
+      "score_distribution": {
+        "min": 0.6138918267084714,
+        "max": 0.6157225708447586,
+        "avg": 0.6153313181182704
+      }
+    }
+  }
+}

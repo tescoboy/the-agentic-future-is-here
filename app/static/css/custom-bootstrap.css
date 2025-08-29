@@ -1,0 +1,29 @@
+/* Custom Bootstrap overrides and additional styles */
+
+/* Loading overlay styles */
+.loading-overlay {
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Form display styles */
+.form-inline {
+    display: inline;
+}
+
+/* Pre-formatted text styles */
+.prompt-text {
+    white-space: pre-wrap;
+    font-size: 0.9em;
+}
+
+/* Confirmation dialog styles */
+.confirm-dialog {
+    display: inline;
+}
+

@@ -99,10 +99,10 @@
 </div>
 
 <!-- Loading Overlay -->
-<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.7); z-index: 9999;">
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none loading-overlay">
     <div class="d-flex justify-content-center align-items-center h-100">
         <div class="text-center text-white">
-            <div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;" role="status">
+            <div class="spinner-border text-light mb-3 loading-spinner" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <h4 class="mb-2">Processing Your Brief</h4>
@@ -117,15 +117,6 @@
     </div>
 </div>
 
-<script>
-document.getElementById('briefForm').addEventListener('submit', function() {
-    // Show loading overlay
-    document.getElementById('loadingOverlay').classList.remove('d-none');
-    
-    // Disable submit button
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...';
-});
-</script>
+<script src="/static/js/buyer.js"></script>
 {% endblock %}
 

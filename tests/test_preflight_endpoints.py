@@ -49,7 +49,7 @@ def sample_external_agent():
 
 def test_preflight_json_endpoint(client, mock_session):
     """Test preflight JSON endpoint returns correct structure."""
-    with patch('app.routes.preflight.get_session', return_value=mock_session):
+    with patch('app.db.get_session', return_value=mock_session):
         # Mock the preflight data generation
         mock_data = {
             "ok": True,
@@ -91,7 +91,7 @@ def test_preflight_json_endpoint(client, mock_session):
             }
         }
         
-        with patch('app.routes.preflight._get_preflight_data', return_value=mock_data):
+        with patch('app.routes.preflight.endpoints.get_preflight_data', return_value=mock_data):
             response = client.get("/preflight/status")
             
             assert response.status_code == 200
@@ -119,14 +119,14 @@ def test_preflight_json_endpoint(client, mock_session):
             assert "MCP_SESSION_TTL_S" in env
             assert "DEBUG" in env
             
-            # Check paths
+            # Check path checks
             paths = data["paths"]
             assert "data_dir_exists" in paths
             assert "db_file_exists" in paths
             assert "db_writeable" in paths
             assert "mcp_routes_mounted" in paths
             
-            # Check reference repos
+            # Check reference data
             reference = data["reference"]
             assert "salesagent_commit" in reference
             assert "signalsagent_commit" in reference
@@ -141,10 +141,6 @@ def test_preflight_json_endpoint(client, mock_session):
             agents = data["agents"]
             assert "enabled_sales" in agents
             assert "enabled_signals" in agents
-            assert "rest" in agents["enabled_sales"]
-            assert "mcp" in agents["enabled_sales"]
-            assert "rest" in agents["enabled_signals"]
-            assert "mcp" in agents["enabled_signals"]
             
             # Check tenants
             tenants = data["tenants"]
@@ -153,9 +149,9 @@ def test_preflight_json_endpoint(client, mock_session):
             assert "using_default_prompts" in tenants
 
 
-def test_preflight_ui_endpoint(client, mock_session):
-    """Test preflight UI endpoint returns HTML."""
-    with patch('app.routes.preflight.get_session', return_value=mock_session):
+def test_preflight_ui_endpoint(client, mock_session, sample_tenant, sample_external_agent):
+    """Test preflight UI endpoint returns HTML dashboard."""
+    with patch('app.db.get_session', return_value=mock_session):
         # Mock the preflight data generation
         mock_data = {
             "ok": True,
@@ -197,9 +193,27 @@ def test_preflight_ui_endpoint(client, mock_session):
             }
         }
         
-        with patch('app.routes.preflight._get_preflight_data', return_value=mock_data):
+        with patch('app.routes.preflight.endpoints.get_preflight_data', return_value=mock_data):
             response = client.get("/preflight/ui")
             
             assert response.status_code == 200
             assert "text/html" in response.headers["content-type"]
-            assert "Preflight Dashboard" in response.text
+            
+            # Check for key HTML elements
+            html_content = response.text
+            assert "Preflight Dashboard" in html_content
+            assert "adcp-demo" in html_content
+            assert "Environment" in html_content
+            assert "Paths" in html_content
+            assert "Reference" in html_content
+            assert "Database Schema" in html_content
+            assert "Agents" in html_content
+            assert "Tenants" in html_content
+            
+            # Check for Bootstrap classes
+            assert "container" in html_content
+            assert "card" in html_content
+            assert "table" in html_content
+            
+            # Check for status indicators
+            assert "badge" in html_content

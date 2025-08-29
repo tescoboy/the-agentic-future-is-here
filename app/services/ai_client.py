@@ -35,7 +35,8 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
         return []
     
     # Initialize Gemini
-    api_key = os.environ.get("GEMINI_API_KEY")
+    from app.utils.env import get_gemini_api_key
+    api_key = get_gemini_api_key()
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY environment variable is required for AI product catalog")
     

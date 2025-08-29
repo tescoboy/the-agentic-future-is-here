@@ -101,7 +101,7 @@
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 <form method="POST" action="/products/{{ product.id }}/delete" 
-                                      style="display: inline;" onsubmit="return confirm('Are you sure?')">
+                                      class="form-inline" onsubmit="return confirmDelete()">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
@@ -171,31 +171,6 @@
     </div>
 </div>
 
-<script>
-function toggleAllCheckboxes() {
-    const selectAll = document.getElementById('select-all');
-    const checkboxes = document.querySelectorAll('.product-checkbox');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAll.checked;
-    });
-    
-    updateProductIds();
-}
-
-function updateProductIds() {
-    const checkboxes = document.querySelectorAll('.product-checkbox:checked');
-    const ids = Array.from(checkboxes).map(cb => cb.value);
-    document.getElementById('product-ids').value = ids.join(',');
-}
-
-// Add event listeners to individual checkboxes
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('.product-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateProductIds);
-    });
-});
-</script>
+<script src="/static/js/products.js"></script>
 {% endblock %}
 

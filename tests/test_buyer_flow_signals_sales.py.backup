@@ -51,21 +51,33 @@ def test_buyer_form_loads_with_agents(mock_list_external, mock_list_tenants, moc
     assert 'value="signals:external:1"' in response.text
 
 
-
-
-
-
+@patch('app.utils.results.parsing.get_external_agent_by_id')
+@patch('app.utils.results.enrichment.get_tenant_by_id')
+@patch('app.services.orchestrator.get_tenant_by_id')
+@patch('app.utils.results.enrichment.get_product_by_id')
 @patch('app.routes.buyer.list_tenants')
 @patch('app.routes.buyer.list_external_agents')
 @patch('app.routes.buyer.orchestrate_brief')
-def test_buyer_submit_sales_only(mock_orchestrate, mock_list_external, mock_list_tenants, mock_tenant):
+def test_buyer_submit_sales_only(mock_orchestrate, mock_list_external, mock_list_tenants, mock_get_product, mock_get_tenant_orchestrator, mock_get_tenant_results, mock_get_external_agent, mock_tenant):
     """Test brief submission with sales agents only."""
     # Setup mocks
     mock_list_tenants.return_value = ([mock_tenant], 1)
     mock_list_external.return_value = []
     
+    # Mock product
+    class MockProduct:
+        def __init__(self):
+            self.id = 1
+            self.name = "Product 1"
+            self.description = "Description 1"
+    mock_get_product.return_value = MockProduct()
     
+    # Mock tenant lookup
+    mock_get_tenant_orchestrator.return_value = mock_tenant
+    mock_get_tenant_results.return_value = mock_tenant
     
+    # Mock external agent lookup (not needed for this test but required by parse_agent_selections)
+    mock_get_external_agent.return_value = None
     
     mock_orchestrate.return_value = {
         "results": [{

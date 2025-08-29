@@ -121,7 +121,7 @@ def bulk_delete_all_tenants_action(session: Session = Depends(get_session)):
         return RedirectResponse(url="/tenants", status_code=302)
     except Exception as e:
         # Log the error and re-raise
-        print(f"Error in bulk delete: {e}")
+        logger.error(f"Error in bulk delete: {e}")
         raise
 
 

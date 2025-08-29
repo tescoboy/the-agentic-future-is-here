@@ -16,7 +16,7 @@ client = TestClient(app)
 @pytest.fixture
 def mock_session():
     """Mock database session."""
-    with patch('app.routes.publisher.get_session') as mock:
+    with patch('app.db.get_session') as mock:
         session = MagicMock(spec=Session)
         mock.return_value = session
         yield session

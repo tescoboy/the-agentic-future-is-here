@@ -8,6 +8,7 @@ from app.repos.tenants import get_tenant_by_slug
 from app.repos.products import list_products
 from app.services.ai_client import rank_products_with_ai
 from app.services.sales_contract import get_default_sales_prompt
+from app.services.product_rag import filter_products_for_brief
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ def _get_products(tenant_slug: str, params: dict, db_session: Session) -> dict:
 
 
 async def _rank_products(tenant_slug: str, params: dict, db_session: Session) -> dict:
-    """Handle rank_products method with AI ranking."""
+    """Handle rank_products method with RAG pre-filter + AI ranking."""
     # Validate tenant exists
     tenant = get_tenant_by_slug(db_session, tenant_slug)
     if not tenant:
@@ -116,21 +117,60 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
     if not brief or not isinstance(brief, str) or not brief.strip():
         raise MCPRPCError(-32602, "brief must be a non-empty string")
     
-    # Get tenant's products
-    products, _ = list_products(db_session, tenant_id=tenant.id)
-    
-    # Resolve prompt: tenant custom prompt or default
-    prompt = tenant.custom_prompt if tenant.custom_prompt else get_default_sales_prompt()
-    prompt_source = "custom" if tenant.custom_prompt else "default"
-    
     try:
-        # Call AI ranking
-        ranked_items = await rank_products_with_ai(brief.strip(), products, prompt)
+        # Step 1: RAG pre-filter to get candidate products
+        rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip())
         
-        # Log prompt source (not content)
-        logger.info(f"AI ranking completed: prompt_source={prompt_source}, items={len(ranked_items)}")
+        if not rag_candidates:
+            # No candidates found, return empty results
+            logger.info(f"RAG pre-filter returned no candidates for brief: {brief[:50]}...")
+            return {"items": []}
         
-        return {"items": ranked_items}
+        # Step 2: Get full product objects for AI ranking
+        candidate_product_ids = [c['product_id'] for c in rag_candidates]
+        # Get all products for the tenant (no limit) to ensure we find all candidates
+        products, _ = list_products(db_session, tenant_id=tenant.id, limit=1000)
+        
+        # Filter products to only include RAG candidates
+        candidate_products = [p for p in products if p.id in candidate_product_ids]
+        
+        if not candidate_products:
+            # No products found for candidates, return empty results
+            logger.warning(f"No products found for RAG candidates: {candidate_product_ids}")
+            return {"items": []}
+        
+        # Step 3: Resolve prompt: tenant custom prompt or default
+        prompt = tenant.custom_prompt if tenant.custom_prompt else get_default_sales_prompt()
+        prompt_source = "custom" if tenant.custom_prompt else "default"
+        
+        # Step 4: Call AI ranking on filtered candidates
+        try:
+            ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt)
+            
+            # Log prompt source (not content)
+            logger.info(f"AI ranking completed: prompt_source={prompt_source}, items={len(ranked_items)}")
+            
+            return {"items": ranked_items}
+            
+        except RuntimeError as e:
+            # If AI ranking fails, fall back to RAG pre-filter results
+            error_msg = str(e)
+            if "GEMINI_API_KEY" in error_msg:
+                logger.warning("AI ranking failed due to missing API key, falling back to RAG pre-filter results")
+                
+                # Convert RAG candidates to the expected format
+                fallback_items = []
+                for candidate in rag_candidates[:10]:  # Limit to top 10
+                    fallback_items.append({
+                        "product_id": str(candidate['product_id']),
+                        "relevance_score": candidate.get('rag_score', candidate.get('fts_score', 0.5)),
+                        "reasoning": f"RAG pre-filter match: {candidate.get('match_reason', 'semantic_similarity')}"
+                    })
+                
+                return {"items": fallback_items}
+            else:
+                # Re-raise other RuntimeErrors
+                raise
         
     except RuntimeError as e:
         # Map AI errors to JSON-RPC errors
@@ -141,6 +181,13 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
             raise MCPRPCError(-32602, "brief must be a non-empty string")
         else:
             raise MCPRPCError(-32000, f"AI ranking failed: {error_msg}")
+    except Exception as e:
+        # Map RAG errors to JSON-RPC errors
+        error_msg = str(e)
+        if "GEMINI API key is required" in error_msg:
+            raise MCPRPCError(-32000, "RAG pre-filter not configured: GEMINI_API_KEY environment variable is required")
+        else:
+            raise MCPRPCError(-32000, f"RAG pre-filter failed: {error_msg}")
 
 
 def _get_info() -> dict:

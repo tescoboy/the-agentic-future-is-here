@@ -16,16 +16,14 @@ class TestBulkDeleteAllTenants:
     def test_bulk_delete_all_tenants_route_exists(self):
         """Test that the bulk delete route exists."""
         response = client.post("/tenants/delete-all", follow_redirects=False)
-        print(f"Response status: {response.status_code}")
-        print(f"Response headers: {response.headers}")
-        print(f"Response text: {response.text[:500]}")  # First 500 chars
+        # Response should redirect back to /tenants
         # Should redirect back to /tenants
         assert response.status_code == 302
         assert response.headers["location"] == "/tenants"
     
     def test_bulk_delete_all_tenants_route_with_mock(self):
         """Test bulk delete route with mocked database."""
-        with patch('app.routes.tenants.bulk_delete_all_tenants') as mock_bulk_delete:
+        with patch('app.routes.tenants.crud.bulk_delete_all_tenants') as mock_bulk_delete:
             mock_bulk_delete.return_value = 3  # Assume 3 tenants were deleted
             
             response = client.post("/tenants/delete-all", follow_redirects=False)
@@ -49,7 +47,7 @@ class TestBulkDeleteAllTenants:
     
     def test_tenants_index_shows_delete_all_button_when_tenants_exist(self):
         """Test that the delete all button appears when tenants exist."""
-        with patch('app.routes.tenants.list_tenants') as mock_list_tenants:
+        with patch('app.routes.tenants.crud.list_tenants') as mock_list_tenants:
             # Mock some tenants
             mock_tenant = MagicMock()
             mock_tenant.id = 1
@@ -69,7 +67,7 @@ class TestBulkDeleteAllTenants:
     
     def test_tenants_index_hides_delete_all_button_when_no_tenants(self):
         """Test that the delete all button is hidden when no tenants exist."""
-        with patch('app.routes.tenants.list_tenants') as mock_list_tenants:
+        with patch('app.routes.tenants.crud.list_tenants') as mock_list_tenants:
             mock_list_tenants.return_value = ([], 0)
             
             response = client.get("/tenants")
