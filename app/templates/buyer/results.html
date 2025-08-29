@@ -105,19 +105,47 @@
                                                                 {% if item.targeting %}
                                                                     <div>
                                                                         <small class="text-muted d-block mb-1">
-                                                                            <i class="fa-solid fa-crosshairs me-1"></i>
-                                                                            <strong>Targeting:</strong>
+                                                                            <i class="fa-solid fa-globe me-1"></i>
+                                                                            <strong>Geo:</strong>
                                                                         </small>
                                                                         <div class="d-flex flex-wrap">
-                                                                            {% for key, value in item.targeting.items() %}
-                                                                                {% if value is sequence and value is not string %}
-                                                                                    {% set targeting_text = key + ': ' + value|join(', ') %}
-                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 150px;" title="{{ targeting_text }}">{{ targeting_text }}</span>
-                                                                                {% else %}
-                                                                                    {% set targeting_text = key + ': ' + value %}
-                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 150px;" title="{{ targeting_text }}">{{ targeting_text }}</span>
-                                                                                {% endif %}
-                                                                            {% endfor %}
+                                                                            {% if item.targeting.geo_country_any_of %}
+                                                                                {% for country in item.targeting.geo_country_any_of %}
+                                                                                    {% set country_display = {
+                                                                                        'usa': 'USA',
+                                                                                        'uk': 'UK',
+                                                                                        'australia': 'Australia',
+                                                                                        'france': 'France',
+                                                                                        'germany': 'Germany',
+                                                                                        'singapore': 'Singapore'
+                                                                                    }.get(country.lower(), country) %}
+                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ country_display }}">{{ country_display }}</span>
+                                                                                {% endfor %}
+                                                                            {% elif item.targeting.geo %}
+                                                                                {% for country in item.targeting.geo %}
+                                                                                    {% set country_display = {
+                                                                                        'usa': 'USA',
+                                                                                        'uk': 'UK',
+                                                                                        'australia': 'Australia',
+                                                                                        'france': 'France',
+                                                                                        'germany': 'Germany',
+                                                                                        'singapore': 'Singapore'
+                                                                                    }.get(country.lower(), country) %}
+                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ country_display }}">{{ country_display }}</span>
+                                                                                {% endfor %}
+                                                                            {% else %}
+                                                                                {% for key, value in item.targeting.items() %}
+                                                                                    {% if key != 'device_type_any_of' and key != 'device_type' %}
+                                                                                        {% if value is sequence and value is not string %}
+                                                                                            {% for v in value %}
+                                                                                                <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ v }}">{{ v }}</span>
+                                                                                            {% endfor %}
+                                                                                        {% else %}
+                                                                                            <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ value }}">{{ value }}</span>
+                                                                                        {% endif %}
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            {% endif %}
                                                                         </div>
                                                                     </div>
                                                                 {% endif %}
