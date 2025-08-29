@@ -24,7 +24,7 @@
                     </div>
                     {% endif %}
 
-                    <form method="POST">
+                    <form method="POST" action="/publisher/{{ tenant.slug }}/products">
                         <input type="hidden" name="tenant_id" value="{{ tenant.id }}">
                         
                         <div class="mb-3">
