@@ -70,17 +70,17 @@ async def startup_event():
             if 'session' in locals():
                 session.close()
         
-        # 9. Seed test data
-        try:
-            from app.utils.seed_data import seed_test_data
-            session = next(get_session())
-            seed_test_data(session)
-            logger.info("Test data seeding completed successfully")
-        except Exception as e:
-            logger.warning(f"Test data seeding failed: {e}")
-        finally:
-            if 'session' in locals():
-                session.close()
+        # 9. Seed test data - DISABLED: Using backup JSON method instead
+        # try:
+        #     from app.utils.seed_data import seed_test_data
+        #     session = next(get_session())
+        #     seed_test_data(session)
+        #     logger.info("Test data seeding completed successfully")
+        # except Exception as e:
+        #     logger.warning(f"Test data seeding failed: {e}")
+        # finally:
+        #     if 'session' in locals():
+        #         session.close()
         
         # 10. Start embedding worker (commented out - requires app instance)
         # try:
