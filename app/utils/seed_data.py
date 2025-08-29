@@ -19,8 +19,13 @@ def seed_test_data(session: Session) -> None:
     """
     logger.info("Checking for test data...")
     
-    # Create tenants and products from CSV
-    _seed_from_csv(session)
+    # Try to create tenants and products from CSV
+    csv_success = _seed_from_csv(session)
+    
+    # If CSV seeding failed, create basic test data
+    if not csv_success:
+        logger.info("CSV seeding failed, creating basic test data...")
+        _seed_basic_test_data(session)
     
     logger.info("Test data seeding completed")
 
@@ -230,8 +235,8 @@ def _ensure_test_products(session: Session, tenant_id: int) -> None:
     logger.info(f"Created {products_to_create} test products (total: {existing_count + products_to_create})")
 
 
-def _seed_from_csv(session: Session) -> None:
-    """Seed tenants and products from CSV file."""
+def _seed_from_csv(session: Session) -> bool:
+    """Seed tenants and products from CSV file. Returns True if successful, False otherwise."""
     import csv
     import json
     import os
@@ -251,9 +256,9 @@ def _seed_from_csv(session: Session) -> None:
             csv_path = path
             break
     
-    if not csv_path:
-        logger.warning(f"CSV file not found in any of these locations: {possible_paths}")
-        return
+                if not csv_path:
+                logger.warning(f"CSV file not found in any of these locations: {possible_paths}")
+                return False
     
     logger.info(f"Found CSV file at: {csv_path}")
     
@@ -280,7 +285,19 @@ def _seed_from_csv(session: Session) -> None:
             if product_count % 100 == 0:
                 logger.info(f"Processed {product_count} products...")
     
-    logger.info(f"Seeded {len(tenants)} tenants with products from CSV")
+                logger.info(f"Seeded {len(tenants)} tenants with products from CSV")
+            return True
+
+
+def _seed_basic_test_data(session: Session) -> None:
+    """Create basic test data if CSV seeding fails."""
+    # Create a basic test tenant
+    test_tenant = _ensure_test_tenant(session)
+    
+    # Create some basic test products
+    _ensure_test_products(session, test_tenant.id)
+    
+    logger.info("Basic test data created successfully")
 
 
 def _ensure_tenant_from_csv(session: Session, tenant_slug: str) -> Tenant:
