@@ -99,7 +99,19 @@ async def startup_event():
             if 'session' in locals():
                 session.close()
         
-        # 8. Start embedding worker if enabled
+        # 8. Seed test data
+        try:
+            from app.utils.seed_data import seed_test_data
+            session = next(get_session())
+            seed_test_data(session)
+            logger.info("Test data seeding completed successfully")
+        except Exception as e:
+            logger.warning(f"Test data seeding failed: {e}")
+        finally:
+            if 'session' in locals():
+                session.close()
+        
+        # 9. Start embedding worker if enabled
         try:
             from app.services.embedding_queue import start_worker
             await start_worker(app)
