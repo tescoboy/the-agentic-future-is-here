@@ -178,6 +178,47 @@ async def test_env():
     }
 
 
+@app.get("/debug/buyer/{tenant_slug}")
+async def debug_buyer(tenant_slug: str):
+    """Debug buyer flow for a specific tenant."""
+    try:
+        from app.repos.tenants import get_tenant_by_slug
+        from app.repos.products import get_products_by_tenant
+        from app.db import get_session
+        
+        session = next(get_session())
+        
+        # Check tenant exists
+        tenant = get_tenant_by_slug(session, tenant_slug)
+        if not tenant:
+            return {"error": f"Tenant '{tenant_slug}' not found"}
+        
+        # Check products exist
+        products = get_products_by_tenant(session, tenant.id)
+        
+        # Check external agents exist
+        from app.repos.external_agents import get_external_agents_by_tenant
+        agents = get_external_agents_by_tenant(session, tenant.id)
+        
+        return {
+            "tenant": {
+                "id": tenant.id,
+                "name": tenant.name,
+                "slug": tenant.slug
+            },
+            "products_count": len(products),
+            "agents_count": len(agents),
+            "sample_products": [{"id": p.id, "name": p.name} for p in products[:3]],
+            "sample_agents": [{"id": a.id, "name": a.name, "endpoint_url": a.endpoint_url} for a in agents[:3]]
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Basic global exception handler for actionable error messages."""
