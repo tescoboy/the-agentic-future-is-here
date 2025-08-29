@@ -256,9 +256,9 @@ def _seed_from_csv(session: Session) -> bool:
             csv_path = path
             break
     
-                if not csv_path:
-                logger.warning(f"CSV file not found in any of these locations: {possible_paths}")
-                return False
+    if not csv_path:
+        logger.warning(f"CSV file not found in any of these locations: {possible_paths}")
+        return False
     
     logger.info(f"Found CSV file at: {csv_path}")
     

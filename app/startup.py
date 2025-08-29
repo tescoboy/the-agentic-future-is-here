@@ -82,12 +82,12 @@ async def startup_event():
             if 'session' in locals():
                 session.close()
         
-        # 10. Start embedding worker
-        try:
-            from app.services.embedding_queue import start_worker
-            await start_worker(app)
-        except Exception as e:
-            logger.warning(f"Failed to start embedding worker: {e}")
+        # 10. Start embedding worker (commented out - requires app instance)
+        # try:
+        #     from app.services.embedding_queue import start_worker
+        #     await start_worker(app)
+        # except Exception as e:
+        #     logger.warning(f"Failed to start embedding worker: {e}")
         
     except Exception as e:
         logger.error(f"Startup failed: {str(e)}")
