@@ -92,8 +92,8 @@
         <div class="col-md-6 col-lg-4 mb-4">
             <div class="card bg-light h-100">
                 <div class="card-body">
-                    <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text text-muted">{{ product.description or 'No description' }}</p>
+                    <h5 class="card-title text-truncate" style="max-width: 100%;" title="{{ product.name }}">{{ product.name }}</h5>
+                    <p class="card-text text-muted product-description" title="{{ product.description or 'No description' }}">{{ product.description or 'No description' }}</p>
                     
                     <div class="row">
                         <div class="col-6">
@@ -102,7 +102,7 @@
                         </div>
                         <div class="col-6">
                             <small class="text-muted">Type:</small><br>
-                            <span class="badge bg-secondary">{{ product.delivery_type }}</span>
+                            <span class="badge bg-secondary text-truncate" style="max-width: 120px;" title="{{ product.delivery_type }}">{{ product.delivery_type }}</span>
                         </div>
                     </div>
                     

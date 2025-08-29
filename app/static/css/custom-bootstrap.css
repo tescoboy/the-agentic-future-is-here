@@ -27,3 +27,138 @@
     display: inline;
 }
 
+/* Long label handling styles */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive badge styles */
+.badge {
+    font-size: 0.75em;
+    line-height: 1.2;
+}
+
+/* Reason text container styles */
+.reason-text-container {
+    position: relative;
+}
+
+.reason-text-preview {
+    transition: max-height 0.3s ease-in-out;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+.reason-toggle {
+    color: #0d6efd;
+    text-decoration: none;
+    font-size: 0.875em;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+.reason-toggle:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+/* Card responsive improvements */
+.card-header h6 {
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Targeting and format badges container */
+.d-flex.flex-wrap {
+    gap: 0.25rem;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .badge {
+        font-size: 0.7em;
+        max-width: 120px !important;
+    }
+    
+    .reason-text-preview {
+        max-height: 3.5em !important;
+        font-size: 0.875em;
+    }
+    
+    .card-header h6 {
+        font-size: 0.9rem;
+        max-width: 60% !important;
+    }
+    
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Tooltip improvements */
+.tooltip {
+    font-size: 0.875em;
+    max-width: 300px;
+}
+
+.tooltip-inner {
+    word-wrap: break-word;
+    text-align: left;
+}
+
+/* Ensure proper text wrapping for long content */
+.card-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Product description truncation */
+.product-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Targeting tags responsive layout */
+.targeting-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: flex-start;
+}
+
+.targeting-badge {
+    flex-shrink: 0;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Format badges responsive layout */
+.format-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: flex-start;
+}
+
+.format-badge {
+    flex-shrink: 0;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
