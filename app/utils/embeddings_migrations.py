@@ -10,6 +10,36 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def _create_embeddings_table_if_missing(session: Session) -> None:
+    """Create product_embeddings table with full schema if it doesn't exist."""
+    conn = session.connection().connection
+    cursor = conn.cursor()
+    
+    # Check if table exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='product_embeddings'")
+    if not cursor.fetchone():
+        logger.info("Creating product_embeddings table with full schema")
+        conn.execute('''
+            CREATE TABLE product_embeddings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER NOT NULL,
+                embedding_text TEXT NOT NULL,
+                embedding_hash TEXT NOT NULL,
+                embedding BLOB NOT NULL,
+                provider TEXT,
+                model TEXT,
+                dim INTEGER,
+                updated_at TEXT,
+                is_stale INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES product(id)
+            )
+        ''')
+        logger.info("product_embeddings table created successfully")
+    else:
+        logger.info("product_embeddings table already exists")
+
+
 def run_embeddings_migrations(session: Session) -> None:
     """
     Run all embeddings-related database migrations.
@@ -18,6 +48,9 @@ def run_embeddings_migrations(session: Session) -> None:
         session: Database session
     """
     logger.info("Starting embeddings migrations...")
+    
+    # Create table if it doesn't exist with full schema
+    _create_embeddings_table_if_missing(session)
     
     # Add new columns to product_embeddings table
     _add_embeddings_metadata_columns(session)
