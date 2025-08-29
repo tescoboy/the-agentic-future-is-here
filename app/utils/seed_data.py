@@ -244,10 +244,10 @@ def _seed_from_csv(session: Session) -> bool:
     
     # Try multiple possible paths
     possible_paths = [
-        "./data/tenant_products.csv",
-        "data/tenant_products.csv",
-        "../data/tenant_products.csv",
-        Path(__file__).parent.parent.parent / "data" / "tenant_products.csv"
+        "./catalog_final.csv",
+        "catalog_final.csv",
+        "../catalog_final.csv",
+        Path(__file__).parent.parent.parent / "catalog_final.csv"
     ]
     
     csv_path = None
