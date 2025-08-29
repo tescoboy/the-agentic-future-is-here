@@ -11,7 +11,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 from app.models import Product
-from app.utils.embeddings import batch_embed_text, query_similar_embeddings
+from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 
 logger = logging.getLogger(__name__)
@@ -164,7 +164,7 @@ async def semantic_search(session: Session, tenant_id: int, brief: str, limit: i
             return []
         
         # Search similar embeddings
-        results = await query_similar_embeddings(session, tenant_id, query_embedding[0], limit)
+        results = await search_similar_products(session, tenant_id, query_embedding[0], limit)
         
         # Add rag_score to results
         for result in results:

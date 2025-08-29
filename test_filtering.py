@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 from app.db import get_session
 from app.repos.tenants import get_tenant_by_slug
 from app.services.product_rag import filter_products_for_brief, choose_search_strategy
-from app.utils.embeddings import batch_embed_text, query_similar_embeddings
+from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 from app.utils.results.display import filter_items_by_score_threshold
 

@@ -17,7 +17,7 @@ from app.services.product_rag import (
     hybrid_rank,
     filter_products_for_brief
 )
-from app.utils.embeddings import batch_embed_text, query_similar_embeddings
+from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 
 
@@ -174,7 +174,7 @@ class TestQueryExpansion:
 class TestSemanticSearch:
     """Test semantic search functionality."""
     
-    @patch('app.services.product_rag.query_similar_embeddings')
+    @patch('app.services.product_rag.search_similar_products')
     @patch('app.services.product_rag.batch_embed_text')
     async def test_semantic_search_success(self, mock_batch_embed, mock_query_similar):
         """Test successful semantic search."""
