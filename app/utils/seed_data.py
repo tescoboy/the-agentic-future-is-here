@@ -14,16 +14,13 @@ logger = logging.getLogger(__name__)
 
 def seed_test_data(session: Session) -> None:
     """
-    Create test tenant and products if they don't exist.
+    Create test tenants and products if they don't exist.
     Runs on every startup to ensure test data is available.
     """
     logger.info("Checking for test data...")
     
-    # Create test tenant if it doesn't exist
-    test_tenant = _ensure_test_tenant(session)
-    
-    # Create test products if they don't exist
-    _ensure_test_products(session, test_tenant.id)
+    # Create tenants and products from CSV
+    _seed_from_csv(session)
     
     logger.info("Test data seeding completed")
 
@@ -231,3 +228,81 @@ def _ensure_test_products(session: Session, tenant_id: int) -> None:
         logger.info(f"Created test product: {product.name}")
     
     logger.info(f"Created {products_to_create} test products (total: {existing_count + products_to_create})")
+
+
+def _seed_from_csv(session: Session) -> None:
+    """Seed tenants and products from CSV file."""
+    import csv
+    import json
+    import os
+    
+    csv_path = "data/tenant_products.csv"
+    if not os.path.exists(csv_path):
+        logger.warning(f"CSV file not found: {csv_path}")
+        return
+    
+    # Track created tenants
+    tenants = {}
+    
+    with open(csv_path, 'r', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        
+        for row in reader:
+            tenant_slug = row['tenant_slug']
+            
+            # Create tenant if it doesn't exist
+            if tenant_slug not in tenants:
+                tenant = _ensure_tenant_from_csv(session, tenant_slug)
+                tenants[tenant_slug] = tenant
+            
+            # Create product
+            _create_product_from_csv(session, row, tenants[tenant_slug].id)
+    
+    logger.info(f"Seeded {len(tenants)} tenants with products from CSV")
+
+
+def _ensure_tenant_from_csv(session: Session, tenant_slug: str) -> Tenant:
+    """Ensure tenant exists, create if it doesn't."""
+    existing_tenant = session.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    if existing_tenant:
+        logger.info(f"Tenant already exists: {existing_tenant.name}")
+        return existing_tenant
+    
+    # Create tenant with appropriate name
+    tenant_names = {
+        'tiktok': 'TikTok',
+        'iheart-radio': 'iHeart Radio',
+        'netflix': 'Netflix',
+        'nytimes': 'New York Times'
+    }
+    
+    tenant_name = tenant_names.get(tenant_slug, tenant_slug.title())
+    tenant = create_tenant(session, tenant_name, tenant_slug)
+    logger.info(f"Created tenant: {tenant.name}")
+    return tenant
+
+
+def _create_product_from_csv(session: Session, row: dict, tenant_id: int) -> None:
+    """Create product from CSV row."""
+    # Check if product already exists
+    existing_product = session.query(Product).filter(
+        Product.tenant_id == tenant_id,
+        Product.name == row['product_name']
+    ).first()
+    
+    if existing_product:
+        return  # Product already exists
+    
+    # Create product
+    product = create_product(
+        session=session,
+        tenant_id=tenant_id,
+        name=row['product_name'],
+        description=row['description'],
+        price_cpm=float(row['price_cpm']),
+        delivery_type=row['delivery_type'],
+        formats_json=row['formats'],
+        targeting_json=row['targeting_json']
+    )
+    
+    logger.debug(f"Created product: {product.name}")
