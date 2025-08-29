@@ -13,6 +13,21 @@
         </div>
     </div>
 
+    <!-- Success/Error Messages -->
+    {% if request.cookies.get('success_message') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ request.cookies.get('success_message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    {% if request.cookies.get('error_message') %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ request.cookies.get('error_message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
     <!-- Stats Cards -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -62,6 +77,36 @@
                     <a href="/tenants/{{ tenant.id }}/prompt" class="btn btn-info btn-sm">
                         <i class="fas fa-edit"></i> Configure Prompt
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Enrichment Settings -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fas fa-magnifying-glass"></i> AI Enrichment Settings
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/publisher/{{ tenant.slug }}/ai-enrichment">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enable_web_context" name="enable_web_context" 
+                                   {% if tenant.enable_web_context %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_web_context">
+                                Enable Web Context Grounding
+                            </label>
+                        </div>
+                        <div class="form-text">Adds fresh web context via Google Search (Gemini). May increase latency/cost.</div>
+                        
+                        <div class="mt-3">
+                            <span class="badge bg-secondary">Global: {% if web_config.enabled %}ON{% else %}OFF{% endif %}</span>
+                            <span class="badge bg-info">Model: {{ web_config.model }}</span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+                    </form>
                 </div>
             </div>
         </div>

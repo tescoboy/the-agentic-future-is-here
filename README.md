@@ -71,6 +71,16 @@ make smoke
 | `EMB_CONCURRENCY` | `2` | Embedding worker concurrency (1-8) |
 | `EMB_BATCH_SIZE` | `32` | Embedding batch size (1-128) |
 
+### Web Context Grounding
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENABLE_WEB_CONTEXT` | `0` | Global flag to enable/disable web grounding |
+| `WEB_CONTEXT_TIMEOUT_MS` | `2000` | Timeout for web context fetching (100-10000ms) |
+| `WEB_CONTEXT_MAX_SNIPPETS` | `3` | Maximum number of snippets to fetch (1-10) |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model to use for web grounding |
+| `GEMINI_API_KEY` | - | Required API key for Gemini (only when grounding enabled) |
+
 ## Render Deployment
 
 This project is configured for deployment on Render with:
@@ -92,6 +102,7 @@ This project is configured for deployment on Render with:
 - Database file: `./data/adcp_demo.sqlite3`
 - Embeddings are disabled by default (set `EMBEDDINGS_PROVIDER` to enable)
 - Set `GEMINI_API_KEY` in Render environment variables if using embeddings
+- Web context grounding is disabled by default (set `ENABLE_WEB_CONTEXT=1` to enable)
 
 ## Project Structure
 
@@ -104,6 +115,8 @@ This project is configured for deployment on Render with:
 ├── scripts/                # Utility scripts
 ├── data/                   # SQLite database (created on startup)
 ├── reference/              # Reference repositories (read-only)
+├── docs/                   # Documentation
+│   └── grounding.md        # Web grounding documentation
 ├── requirements.txt        # Python dependencies
 ├── Makefile               # Development commands
 ├── Procfile               # Render/Heroku deployment

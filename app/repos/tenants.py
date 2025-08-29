@@ -89,6 +89,20 @@ def update_tenant(session: Session, tenant_id: int, name: str, slug: str) -> Opt
     return tenant
 
 
+def update_tenant_web_context(session: Session, tenant_id: int, enable_web_context: bool) -> Optional[Tenant]:
+    """Update tenant's web context setting."""
+    tenant = get_tenant_by_id(session, tenant_id)
+    if not tenant:
+        return None
+    
+    tenant.enable_web_context = enable_web_context
+    session.add(tenant)
+    session.commit()
+    auto_backup(session, "tenant_web_context_updated")
+    session.refresh(tenant)
+    return tenant
+
+
 def delete_tenant(session: Session, tenant_id: int) -> bool:
     """Delete a tenant."""
     tenant = get_tenant_by_id(session, tenant_id)

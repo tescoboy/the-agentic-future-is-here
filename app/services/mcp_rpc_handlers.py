@@ -1,7 +1,7 @@
 """MCP JSON-RPC method dispatcher and handlers."""
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from sqlmodel import Session
 
 from app.repos.tenants import get_tenant_by_slug
@@ -117,6 +117,15 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
     if not brief or not isinstance(brief, str) or not brief.strip():
         raise MCPRPCError(-32602, "brief must be a non-empty string")
     
+    # Extract web snippets if provided
+    web_snippets = params.get("web_snippets")
+    if web_snippets is not None:
+        if not isinstance(web_snippets, list):
+            raise MCPRPCError(-32602, "web_snippets must be a list of strings")
+        for snippet in web_snippets:
+            if not isinstance(snippet, str):
+                raise MCPRPCError(-32602, "web_snippets must be a list of strings")
+    
     try:
         # Step 1: RAG pre-filter to get candidate products
         rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip())
@@ -145,7 +154,7 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         
         # Step 4: Call AI ranking on filtered candidates
         try:
-            ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt)
+            ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt, web_snippets)
             
             # Log prompt source (not content)
             logger.info(f"AI ranking completed: prompt_source={prompt_source}, items={len(ranked_items)}")

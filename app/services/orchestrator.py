@@ -13,6 +13,7 @@ from app.services._orchestrator_env import get_env_config
 from app.services._orchestrator_agents import call_sales_agent, call_signals_agent
 from app.models import ExternalAgent
 from app.db import get_session
+from app.utils.env import get_web_grounding_config
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,9 @@ async def orchestrate_brief(brief: str, tenant_ids: List[int], external_agents: 
     config = get_env_config()
     semaphore = asyncio.Semaphore(config["concurrency"])
     
+    # Get web grounding configuration
+    web_config = get_web_grounding_config()
+    
     # Create sales tasks
     sales_tasks = []
     
@@ -50,7 +54,7 @@ async def orchestrate_brief(brief: str, tenant_ids: List[int], external_agents: 
             tenant_prompt = tenant.custom_prompt if tenant.custom_prompt else None
             prompt_source = "custom" if tenant.custom_prompt else "default"
             
-            task = asyncio.create_task(call_sales_agent(tenant, brief, semaphore, config, tenant_prompt, prompt_source))
+            task = asyncio.create_task(call_sales_agent(tenant, brief, semaphore, config, tenant_prompt, prompt_source, web_config))
             sales_tasks.append(task)
     
     # Create signals tasks

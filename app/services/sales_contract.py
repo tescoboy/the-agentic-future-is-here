@@ -6,7 +6,7 @@ File: examples/upstream_quickstart.py (line 69)
 Method: get_products(brief: str, tenant_id: Optional[str] = None, **kwargs)
 """
 
-from typing import Optional
+from typing import Optional, List
 from app.services._contract_utils import get_salesagent_commit
 
 # Method name from reference repository
@@ -53,13 +53,14 @@ Focus on:
 Return ONLY the JSON response, no additional text."""
 
 
-def build_sales_params(brief: str, tenant_prompt: Optional[str] = None) -> dict:
+def build_sales_params(brief: str, tenant_prompt: Optional[str] = None, web_snippets: Optional[List[str]] = None) -> dict:
     """
     Build parameters for sales agent request.
     
     Args:
         brief: The buyer's brief description
         tenant_prompt: Optional tenant-specific prompt override
+        web_snippets: Optional list of web context snippets
         
     Returns:
         Dictionary with required parameters for sales agent
@@ -73,9 +74,14 @@ def build_sales_params(brief: str, tenant_prompt: Optional[str] = None) -> dict:
     # Select prompt: tenant override or default
     prompt = tenant_prompt or get_default_sales_prompt()
     
-    # Return minimal required structure from reference contract
-    # Based on examples/upstream_quickstart.py line 69
-    return {
+    # Build base parameters
+    params = {
         "brief": brief.strip()
     }
+    
+    # Add web snippets if provided
+    if web_snippets and len(web_snippets) > 0:
+        params["web_snippets"] = web_snippets
+    
+    return params
 

@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from app.services.mcp_client import MCPClient
 from app.services.sales_contract import SALES_METHOD, build_sales_params
@@ -11,13 +11,15 @@ from app.services.adapters.signals_response import normalize_signals
 from app.services._orchestrator_breaker import (
     check_circuit_breaker, record_circuit_breaker_failure, reset_circuit_breaker
 )
+from app.services.web_context_google import fetch_web_context
 from app.models import ExternalAgent
 
 logger = logging.getLogger(__name__)
 
 
 async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore, config: Dict[str, Any], 
-                          tenant_prompt: str = None, prompt_source: str = "default") -> Dict[str, Any]:
+                          tenant_prompt: str = None, prompt_source: str = "default", 
+                          web_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Call internal Sales agent via MCP."""
     async with semaphore:
         try:
@@ -33,12 +35,48 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
                     "error": "circuit breaker open"
                 }
             
+            # Handle web grounding if enabled
+            web_snippets = None
+            web_grounding_ok = True
+            
+            if web_config and web_config.get("enabled", False):
+                # Check if tenant has web context enabled
+                if hasattr(tenant, 'enable_web_context') and tenant.enable_web_context:
+                    try:
+                        result = await fetch_web_context(
+                            brief, 
+                            web_config["timeout_ms"], 
+                            web_config["max_snippets"],
+                            web_config["model"],
+                            web_config["provider"]
+                        )
+                        web_snippets = result["snippets"]
+                        logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets={len(web_snippets)} ok=true")
+                    except Exception as e:
+                        web_grounding_ok = False
+                        logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets=0 ok=false")
+                else:
+                    logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model={web_config['model']} snippets=0 ok=true")
+            else:
+                logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model=n/a snippets=0 ok=true")
+            
             # Call MCP agent
             client = MCPClient(base_url, timeout=config["timeout_ms"])
             try:
                 await client.open()
-                result = await client.call(SALES_METHOD, build_sales_params(brief, tenant_prompt))
+                
+                # Add web snippets to sales params if available
+                sales_params = build_sales_params(brief, tenant_prompt, web_snippets)
+                
+                result = await client.call(SALES_METHOD, sales_params)
                 items = result.get("items", [])
+                
+                # Add web context error to items if grounding failed
+                if not web_grounding_ok:
+                    for item in items:
+                        if "errors" not in item:
+                            item["errors"] = []
+                        item["errors"].append("web_context_unavailable")
                 
                 reset_circuit_breaker(base_url)
                 logger.info(f"agent={tenant.name} type=sales protocol=mcp ok=true keys=items={len(items)} prompt_source={prompt_source}")

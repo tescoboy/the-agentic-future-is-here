@@ -6,14 +6,14 @@ Copied from reference/salesagent/product_catalog_providers/ai.py @ 0a0403c
 import json
 import os
 import asyncio
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import google.generativeai as genai
 
 from app.models import Product
 from app.services.sales_contract import get_default_sales_prompt
 
 
-async def rank_products_with_ai(brief: str, products: List[Product], prompt: str) -> List[Dict[str, Any]]:
+async def rank_products_with_ai(brief: str, products: List[Product], prompt: str, web_snippets: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """
     Rank products using Gemini AI.
     
@@ -21,6 +21,7 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
         brief: Buyer brief (non-empty)
         products: List of tenant products
         prompt: AI prompt (custom or default)
+        web_snippets: Optional list of web context snippets
         
     Returns:
         List of ranked items with product_id, reason, score
@@ -75,13 +76,22 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
         
         products_data.append(product_info)
     
+    # Build context section with web snippets if available
+    context_section = ""
+    if web_snippets and len(web_snippets) > 0:
+        context_section = f"""
+Current Market Context (from web search):
+{chr(10).join(f"- {snippet}" for snippet in web_snippets)}
+
+"""
+    
     # Create the AI prompt
     ai_prompt = f"""
 {prompt}
 
 Campaign Brief: {brief}
 
-Available Products:
+{context_section}Available Products:
 {json.dumps(products_data, indent=2)}
 
 Your task:

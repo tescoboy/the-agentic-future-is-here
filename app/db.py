@@ -65,6 +65,27 @@ def ensure_database():
         raise RuntimeError(f"Database initialization failed: {str(e)}")
 
 
+def migrate_web_context_column():
+    """Add enable_web_context column to tenant table if it doesn't exist."""
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            # Check if column exists
+            result = conn.execute(text("PRAGMA table_info(tenant)"))
+            columns = [row[1] for row in result.fetchall()]
+            
+            if 'enable_web_context' not in columns:
+                # Add the column
+                conn.execute(text("ALTER TABLE tenant ADD COLUMN enable_web_context INTEGER DEFAULT 0"))
+                conn.commit()
+                print("Added enable_web_context column to tenant table")
+            else:
+                print("enable_web_context column already exists")
+                
+    except Exception as e:
+        raise RuntimeError(f"Database migration failed: ALTER TABLE tenant ADD COLUMN enable_web_context INTEGER DEFAULT 0 - {str(e)}")
+
+
 def get_session() -> Generator[Session, None, None]:
     """Get database session for dependency injection."""
     engine = get_engine()
