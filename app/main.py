@@ -183,7 +183,7 @@ async def debug_buyer(tenant_slug: str):
     """Debug buyer flow for a specific tenant."""
     try:
         from app.repos.tenants import get_tenant_by_slug
-        from app.repos.products import get_products_by_tenant
+        from app.repos.products import list_products
         from app.db import get_session
         
         session = next(get_session())
