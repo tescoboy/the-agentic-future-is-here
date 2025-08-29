@@ -6,11 +6,22 @@ from app.utils.auto_backup_simple import auto_backup
 from typing import List, Optional
 from sqlmodel import Session, select
 from app.models import Tenant
+import re
 
 
 def create_tenant(session: Session, name: str, slug: str) -> Tenant:
     """Create a new tenant."""
-    tenant = Tenant(name=name, slug=slug)
+    # Validate inputs
+    if not name or not name.strip():
+        raise ValueError("Tenant name cannot be empty")
+    if not slug or not slug.strip():
+        raise ValueError("Tenant slug cannot be empty")
+    
+    # Ensure slug is lowercase and contains only valid characters
+    if not re.match(r'^[a-z0-9-]+$', slug):
+        raise ValueError("Slug must contain only lowercase letters, numbers, and hyphens")
+    
+    tenant = Tenant(name=name.strip(), slug=slug.strip())
     session.add(tenant)
     session.commit()
     auto_backup(session, "tenant_created")
@@ -59,8 +70,18 @@ def update_tenant(session: Session, tenant_id: int, name: str, slug: str) -> Opt
     if not tenant:
         return None
     
-    tenant.name = name
-    tenant.slug = slug
+    # Validate inputs
+    if not name or not name.strip():
+        raise ValueError("Tenant name cannot be empty")
+    if not slug or not slug.strip():
+        raise ValueError("Tenant slug cannot be empty")
+    
+    # Ensure slug is lowercase and contains only valid characters
+    if not re.match(r'^[a-z0-9-]+$', slug):
+        raise ValueError("Slug must contain only lowercase letters, numbers, and hyphens")
+    
+    tenant.name = name.strip()
+    tenant.slug = slug.strip()
     session.add(tenant)
     session.commit()
     auto_backup(session, "tenant_created")

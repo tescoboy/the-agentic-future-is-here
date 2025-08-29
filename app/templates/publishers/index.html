@@ -28,10 +28,17 @@
                     </p>
                     
                     <div class="mt-3">
+                        {% if tenant.slug and tenant.slug.strip() %}
                         <a href="/publisher/{{ tenant.slug }}/" class="btn btn-primary btn-sm">
                             <i class="fas fa-external-link-alt"></i>
                             Open Publisher Portal
                         </a>
+                        {% else %}
+                        <span class="text-muted">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Invalid slug
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-footer text-muted">
