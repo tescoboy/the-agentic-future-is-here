@@ -194,11 +194,11 @@ async def debug_buyer(tenant_slug: str):
             return {"error": f"Tenant '{tenant_slug}' not found"}
         
         # Check products exist
-        products = get_products_by_tenant(session, tenant.id)
+        products, total = list_products(session, tenant_id=tenant.id)
         
         # Check external agents exist
-        from app.repos.external_agents import get_external_agents_by_tenant
-        agents = get_external_agents_by_tenant(session, tenant.id)
+        from app.repos.external_agents import list_external_agents
+        agents = list_external_agents(session)
         
         return {
             "tenant": {
