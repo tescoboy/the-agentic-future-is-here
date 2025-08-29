@@ -8,7 +8,7 @@ Provides vector embedding generation and similarity search for products.
 
 import sqlite3
 import json
-import numpy as np
+import struct
 from typing import List, Dict, Any, Optional
 import asyncio
 from sqlalchemy.orm import Session
@@ -17,6 +17,16 @@ from app.utils.env import get_gemini_api_key
 
 # Constants copied from signals-agent
 EMBEDDING_DIMENSION = 768  # text-embedding-004 produces 768-dim vectors
+
+
+def _embedding_to_bytes(embedding: List[float]) -> bytes:
+    """Convert embedding list to bytes using struct module instead of numpy."""
+    return struct.pack(f'{len(embedding)}f', *embedding)
+
+
+def _bytes_to_embedding(embedding_bytes: bytes) -> List[float]:
+    """Convert bytes back to embedding list using struct module instead of numpy."""
+    return list(struct.unpack(f'{len(embedding_bytes)//4}f', embedding_bytes))
 
 
 async def batch_embed_text(texts: List[str]) -> List[List[float]]:
@@ -77,8 +87,8 @@ async def upsert_product_embeddings(session: Session, product_id: int, embedding
         updated_at: ISO timestamp
         embedding_hash: Pre-computed hash
     """
-    # Convert embedding to bytes for storage
-    embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
+    # Convert embedding to bytes for storage using struct instead of numpy
+    embedding_bytes = _embedding_to_bytes(embedding)
     
     # Use raw SQL for embedding storage
     conn = session.connection().connection
@@ -188,8 +198,8 @@ async def query_similar_embeddings(session: Session, tenant_id: int, query_embed
             product_id, name, description, price_cpm, delivery_type, formats_json, targeting_json, embedding_bytes = row
             
             # Convert embedding bytes back to list
-            embedding_array = np.frombuffer(embedding_bytes, dtype=np.float32)
-            embedding_list = embedding_array.tolist()
+            embedding_array = _bytes_to_embedding(embedding_bytes)
+            embedding_list = embedding_array
             
             # Calculate cosine similarity
             similarity = _cosine_similarity(query_embedding, embedding_list)
@@ -228,13 +238,13 @@ def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
     """
     try:
         # Convert to numpy arrays
-        a = np.array(vec1)
-        b = np.array(vec2)
+        a = vec1
+        b = vec2
         
         # Calculate cosine similarity
-        dot_product = np.dot(a, b)
-        norm_a = np.linalg.norm(a)
-        norm_b = np.linalg.norm(b)
+        dot_product = sum(x * y for x, y in zip(a, b))
+        norm_a = sum(x**2 for x in a)**0.5
+        norm_b = sum(x**2 for x in b)**0.5
         
         if norm_a == 0 or norm_b == 0:
             return 0.0
