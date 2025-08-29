@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Backup & Restore - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-database"></i> Backup & Restore System
+            </h1>
+            
+            <!-- Status Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> System Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="status-content">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Operations -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-save"></i> Create Backup
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Create a complete backup of all application data including tenants, products, external agents, and settings.</p>
+                            <button class="btn btn-primary" onclick="createBackup()">
+                                <i class="fas fa-download"></i> Create Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-upload"></i> Restore Backup
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Restore data from the most recent backup or specify a backup file.</p>
+                            <button class="btn btn-warning" onclick="restoreBackup()">
+                                <i class="fas fa-upload"></i> Restore Latest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup List -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Available Backups
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="backups-list">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export/Import -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-export"></i> Export Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Export current data as JSON for manual backup or transfer.</p>
+                            <button class="btn btn-info" onclick="exportData()">
+                                <i class="fas fa-file-export"></i> Export JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-import"></i> Import Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Import data from a backup file.</p>
+                            <input type="file" id="backup-file" class="form-control mb-2" accept=".json">
+                            <button class="btn btn-success" onclick="importData()">
+                                <i class="fas fa-file-import"></i> Import
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+<script>
+// Load status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatus();
+    loadBackups();
+});
+
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alert-container');
+    const alertId = 'alert-' + Date.now();
+    
+    const alertHtml = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    alertContainer.innerHTML += alertHtml;
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+async function loadStatus() {
+    try {
+        const response = await fetch('/admin/backup/status');
+        const data = await response.json();
+        
+        const statusHtml = `
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Status:</strong> 
+                    <span class="badge bg-${data.status === 'healthy' ? 'success' : 'danger'}">${data.status}</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Total Backups:</strong> ${data.total_backups}
+                </div>
+                <div class="col-md-3">
+                    <strong>Latest Backup:</strong> ${data.latest_backup || 'None'}
+                </div>
+                <div class="col-md-3">
+                    <strong>Directory:</strong> ${data.backup_directory}
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('status-content').innerHTML = statusHtml;
+    } catch (error) {
+        document.getElementById('status-content').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load status: ${error.message}
+            </div>
+        `;
+    }
+}
+
+async function loadBackups() {
+    try {
+        const response = await fetch('/admin/backup/list');
+        const data = await response.json();
+        
+        if (data.backups.length === 0) {
+            document.getElementById('backups-list').innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>No backup files found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const backupsHtml = `
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Backup File</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.backups.map(backup => `
+                            <tr>
+                                <td>${backup}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" onclick="restoreBackup('${backup}')">
+                                        <i class="fas fa-upload"></i> Restore
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('backups-list').innerHTML = backupsHtml;
+    } catch (error) {
+        document.getElementById('backups-list').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load backups: ${error.message}
+            </div>
+        `;
+    }
+}
+
+async function createBackup() {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        button.disabled = true;
+        
+        const response = await fetch('/admin/backup/create', { method: 'POST' });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert('Backup created successfully!', 'success');
+            loadStatus();
+            loadBackups();
+        } else {
+            showAlert(`Backup failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Backup failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+async function restoreBackup(backupFile = null) {
+    if (!confirm('Are you sure you want to restore from backup? This will overwrite current data.')) {
+        return;
+    }
+    
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+        button.disabled = true;
+        
+        const url = backupFile ? `/admin/backup/restore?backup_file=${backupFile}` : '/admin/backup/restore';
+        const response = await fetch(url, { method: 'POST' });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert('Backup restored successfully!', 'success');
+            loadStatus();
+            loadBackups();
+        } else {
+            showAlert(`Restore failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Restore failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+async function exportData() {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        button.disabled = true;
+        
+        const response = await fetch('/admin/backup/export');
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Download the JSON file
+            const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('Data exported successfully!', 'success');
+        } else {
+            showAlert(`Export failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Export failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+async function importData() {
+    const fileInput = document.getElementById('backup-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showAlert('Please select a backup file', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to import data? This may overwrite existing data.')) {
+        return;
+    }
+    
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+        button.disabled = true;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/admin/backup/import', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert('Data imported successfully!', 'success');
+            loadStatus();
+            loadBackups();
+        } else {
+            showAlert(`Import failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Import failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+        fileInput.value = '';
+    }
+}
+</script>
+{% endblock %}

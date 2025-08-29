@@ -17,6 +17,7 @@ from app.utils.migrations import run_migrations
 from app.utils.reference_validator import validate_reference_repos
 from app.utils.rag_migrations import run_rag_startup_checks
 from app.routes import tenants, external_agents, products, mcp_rpc, buyer, tenant_switch, publisher, publishers
+from app.routes.admin import backup
 from app.routes.preflight import router as preflight_router
 from app.middleware.tenant_middleware import TenantMiddleware
 
@@ -48,6 +49,7 @@ app.include_router(preflight_router)
 app.include_router(tenant_switch.router)
 app.include_router(publisher.router)
 app.include_router(publishers.router)
+app.include_router(backup.router)
 
 
 @app.on_event("startup")
@@ -99,17 +101,35 @@ async def startup_event():
             if 'session' in locals():
                 session.close()
         
-        # 8. Seed test data
-        try:
-            from app.utils.seed_data import seed_test_data
-            session = next(get_session())
-            seed_test_data(session)
-            logger.info("Test data seeding completed successfully")
-        except Exception as e:
-            logger.warning(f"Test data seeding failed: {e}")
-        finally:
-            if 'session' in locals():
-                session.close()
+                        # 8. Auto-backup and restore
+                try:
+                    from app.utils.data_persistence import auto_backup_on_startup, auto_restore_on_startup
+                    session = next(get_session())
+                    
+                    # Create backup of current state
+                    auto_backup_on_startup(session)
+                    
+                    # Restore from latest backup if available
+                    auto_restore_on_startup(session)
+                    
+                    logger.info("Backup/restore operations completed successfully")
+                except Exception as e:
+                    logger.warning(f"Backup/restore operations failed: {e}")
+                finally:
+                    if 'session' in locals():
+                        session.close()
+                
+                # 9. Seed test data (only if no data exists)
+                try:
+                    from app.utils.seed_data import seed_test_data
+                    session = next(get_session())
+                    seed_test_data(session)
+                    logger.info("Test data seeding completed successfully")
+                except Exception as e:
+                    logger.warning(f"Test data seeding failed: {e}")
+                finally:
+                    if 'session' in locals():
+                        session.close()
         
         # 9. Start embedding worker if enabled
         try:
