@@ -9,11 +9,11 @@ services:
       - key: DB_URL
         value: sqlite:///./data/adcp_demo.sqlite3
       - key: SERVICE_BASE_URL
-        value: http://localhost:8000
+        value: https://the-agentic-future-is-here-5.onrender.com
       - key: DEBUG
         value: 0
       - key: EMBEDDINGS_PROVIDER
-        value: ""
+        value: gemini
       - key: EMBEDDINGS_MODEL
         value: text-embedding-004
       - key: EMB_CONCURRENCY
