@@ -30,7 +30,12 @@ def temp_db():
     from app.models import SQLModel
     SQLModel.metadata.create_all(engine)
     
+    # Run embeddings migrations to create product_embeddings table
+    from app.utils.embeddings_migrations import run_embeddings_migrations
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = SessionLocal()
+    run_embeddings_migrations(session)
+    session.close()
     
     yield SessionLocal()
     
@@ -90,7 +95,9 @@ def mock_batch_embed_text():
     """Mock batch embedding function."""
     with patch('app.utils.embeddings.batch_embed_text') as mock:
         # Return small fixed vectors for testing
-        mock.return_value = [[0.1] * 8 for _ in range(16)]  # 8-dim vectors
+        async def mock_embed(texts):
+            return [[0.1] * 8 for _ in range(len(texts))]  # 8-dim vectors
+        mock.side_effect = mock_embed
         yield mock
 
 
@@ -360,7 +367,8 @@ class TestDatabaseSchema:
     def test_embeddings_table_schema(self, temp_db):
         """Test that embeddings table has correct schema."""
         # Check if table exists and has required columns
-        result = temp_db.execute("PRAGMA table_info(product_embeddings)")
+        from sqlalchemy import text
+        result = temp_db.execute(text("PRAGMA table_info(product_embeddings)"))
         columns = {row[1] for row in result.fetchall()}
         
         required_columns = {
@@ -374,7 +382,8 @@ class TestDatabaseSchema:
     def test_unique_index(self, temp_db):
         """Test unique index on (product_id, provider, model)."""
         # Check if unique index exists
-        result = temp_db.execute("PRAGMA index_list(product_embeddings)")
+        from sqlalchemy import text
+        result = temp_db.execute(text("PRAGMA index_list(product_embeddings)"))
         indexes = {row[1] for row in result.fetchall()}
         
         assert 'idx_product_embeddings_version' in indexes
