@@ -2,10 +2,13 @@
 Admin routes for backup and restore operations.
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
+import json
+import tempfile
+import os
 from app.utils.data_persistence import (
     create_backup, restore_backup, list_backups,
     export_all_data, import_all_data
@@ -66,18 +69,33 @@ async def export_data_endpoint():
 
 
 @router.post("/import")
-async def import_data_endpoint(backup_file: Optional[str] = None):
-    """Import data from backup file."""
+async def import_data_endpoint(file: UploadFile = File(...)):
+    """Import data from uploaded backup file."""
     try:
+        # Validate file type
+        if not file.filename.endswith('.json'):
+            raise HTTPException(status_code=400, detail="Only JSON files are supported")
+        
+        # Read and parse the uploaded file
+        content = await file.read()
+        try:
+            data = json.loads(content.decode('utf-8'))
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON file: {str(e)}")
+        
+        # Import the data
         session = next(get_session())
         try:
-            data = import_all_data(session, backup_file)
+            result = import_all_data(session, data)
             return {
                 "message": "Data imported successfully",
-                "status": "success"
+                "status": "success",
+                "details": result
             }
         finally:
             session.close()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
