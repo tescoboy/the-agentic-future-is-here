@@ -84,7 +84,7 @@ async def publisher_create_product(request: Request, tenant_slug: str, session: 
                            tenant_id: int = Form(...), name: str = Form(...),
                            description: str = Form(""), price_cpm: float = Form(...),
                            delivery_type: str = Form(...), formats_json: str = Form("{}"),
-                           targeting_json: str = Form("{}")):
+                           targeting_json: str = Form("{}"), formats: str = Form(""), geo: str = Form("")):
     """Create product under publisher tenant."""
     tenant = _get_tenant_or_404(session, tenant_slug)
     
@@ -99,15 +99,36 @@ async def publisher_create_product(request: Request, tenant_slug: str, session: 
             "description": description,
             "price_cpm": price_cpm,
             "delivery_type": delivery_type,
-            "formats_json": formats_json,
-            "targeting_json": targeting_json
+            "formats": formats,
+            "geo": geo
         })
     
     try:
+        # Handle new form structure with formats and geo fields
+        import json
+        
+        # Use formats_json if provided, otherwise convert formats to JSON
+        if formats_json and formats_json != "{}":
+            final_formats_json = formats_json
+        elif formats:
+            final_formats_json = json.dumps([formats])
+        else:
+            final_formats_json = "{}"
+        
+        # Use targeting_json if provided, otherwise convert geo to JSON
+        if targeting_json and targeting_json != "{}":
+            final_targeting_json = targeting_json
+        elif geo:
+            # Handle multiple geo selections
+            geo_list = [g.strip() for g in geo.split(',') if g.strip()]
+            final_targeting_json = json.dumps({"geo_country_any_of": geo_list})
+        else:
+            final_targeting_json = "{}"
+        
         form = ProductForm(
             tenant_id=tenant.id, name=name, description=description,
             price_cpm=price_cpm, delivery_type=delivery_type,
-            formats_json=formats_json, targeting_json=targeting_json
+            formats_json=final_formats_json, targeting_json=final_targeting_json
         )
         product = create_product(
             session, form.tenant_id, form.name, form.description,
@@ -138,8 +159,8 @@ async def publisher_create_product(request: Request, tenant_slug: str, session: 
             "description": description,
             "price_cpm": price_cpm,
             "delivery_type": delivery_type,
-            "formats_json": formats_json,
-            "targeting_json": targeting_json
+            "formats": formats,
+            "geo": geo
         })
 
 

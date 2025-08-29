@@ -52,31 +52,50 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="delivery_type" class="form-label">Delivery Type *</label>
-                                    <select class="form-select" id="delivery_type" name="delivery_type" required>
-                                        <option value="">Select delivery type...</option>
-                                        <option value="banner" {% if delivery_type == 'banner' %}selected{% endif %}>Banner</option>
-                                        <option value="video" {% if delivery_type == 'video' %}selected{% endif %}>Video</option>
-                                        <option value="native" {% if delivery_type == 'native' %}selected{% endif %}>Native</option>
-                                        <option value="audio" {% if delivery_type == 'audio' %}selected{% endif %}>Audio</option>
-                                        <option value="display" {% if delivery_type == 'display' %}selected{% endif %}>Display</option>
-                                    </select>
+                                    <label class="form-label">Delivery Type *</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="delivery_type" 
+                                               id="delivery_guaranteed" value="guaranteed" 
+                                               {% if delivery_type == 'guaranteed' or not delivery_type %}checked{% endif %} required>
+                                        <label class="form-check-label" for="delivery_guaranteed">
+                                            Guaranteed Delivery
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="delivery_type" 
+                                               id="delivery_non_guaranteed" value="non_guaranteed" 
+                                               {% if delivery_type == 'non_guaranteed' %}checked{% endif %}>
+                                        <label class="form-check-label" for="delivery_non_guaranteed">
+                                            Non Guaranteed Delivery
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="formats_json" class="form-label">Formats (JSON)</label>
-                            <textarea class="form-control" id="formats_json" name="formats_json" 
-                                      rows="3" placeholder='{"sizes": ["300x250", "728x90"]}'>{{ formats_json or '{}' }}</textarea>
-                            <div class="form-text">JSON object with format specifications</div>
+                            <label for="formats" class="form-label">Formats *</label>
+                            <select class="form-select" id="formats" name="formats" required>
+                                <option value="">Select format...</option>
+                                <option value="audio" {% if formats == 'audio' %}selected{% endif %}>Audio</option>
+                                <option value="banner" {% if formats == 'banner' %}selected{% endif %}>Banner</option>
+                                <option value="native" {% if formats == 'native' %}selected{% endif %}>Native</option>
+                                <option value="take_over" {% if formats == 'take_over' %}selected{% endif %}>Take Over</option>
+                                <option value="video" {% if formats == 'video' %}selected{% endif %}>Video</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="targeting_json" class="form-label">Targeting (JSON)</label>
-                            <textarea class="form-control" id="targeting_json" name="targeting_json" 
-                                      rows="3" placeholder='{"geo": ["US", "CA"], "age": [18, 65]}'>{{ targeting_json or '{}' }}</textarea>
-                            <div class="form-text">JSON object with targeting specifications</div>
+                            <label for="geo" class="form-label">Geo *</label>
+                            <select class="form-select" id="geo" name="geo" multiple required>
+                                <option value="australia" {% if geo and 'australia' in geo %}selected{% endif %}>Australia</option>
+                                <option value="france" {% if geo and 'france' in geo %}selected{% endif %}>France</option>
+                                <option value="germany" {% if geo and 'germany' in geo %}selected{% endif %}>Germany</option>
+                                <option value="singapore" {% if geo and 'singapore' in geo %}selected{% endif %}>Singapore</option>
+                                <option value="uk" {% if geo and 'uk' in geo %}selected{% endif %}>UK</option>
+                                <option value="usa" {% if geo and 'usa' in geo %}selected{% endif %}>USA</option>
+                            </select>
+                            <div class="form-text">Hold Ctrl (or Cmd on Mac) to select multiple countries</div>
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -114,4 +133,44 @@
         </div>
     </div>
 </div>
+
+<script>
+// Handle form submission to convert multi-select values to JSON
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Convert formats to JSON
+    const formatsSelect = document.getElementById('formats');
+    const formatsValue = formatsSelect.value;
+    if (formatsValue) {
+        const formatsInput = document.createElement('input');
+        formatsInput.type = 'hidden';
+        formatsInput.name = 'formats_json';
+        formatsInput.value = JSON.stringify([formatsValue]);
+        this.appendChild(formatsInput);
+    }
+    
+    // Convert geo to JSON
+    const geoSelect = document.getElementById('geo');
+    const selectedGeo = Array.from(geoSelect.selectedOptions).map(option => option.value);
+    if (selectedGeo.length > 0) {
+        const geoInput = document.createElement('input');
+        geoInput.type = 'hidden';
+        geoInput.name = 'targeting_json';
+        geoInput.value = JSON.stringify({geo_country_any_of: selectedGeo});
+        this.appendChild(geoInput);
+    }
+    
+    // Validate required fields
+    if (!formatsValue) {
+        e.preventDefault();
+        alert('Please select a format');
+        return false;
+    }
+    
+    if (selectedGeo.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one country');
+        return false;
+    }
+});
+</script>
 {% endblock %}
