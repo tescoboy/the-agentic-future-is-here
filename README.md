@@ -65,6 +65,11 @@ make smoke
 | `PORT` | `8000` | Server port |
 | `SERVICE_BASE_URL` | `http://localhost:8000` | Service base URL |
 | `DEBUG` | `0` | Debug mode |
+| `EMBEDDINGS_PROVIDER` | `""` | Embedding provider (e.g., "gemini") |
+| `GEMINI_API_KEY` | - | Required if EMBEDDINGS_PROVIDER is set |
+| `EMBEDDINGS_MODEL` | `text-embedding-004` | Embedding model name |
+| `EMB_CONCURRENCY` | `2` | Embedding worker concurrency (1-8) |
+| `EMB_BATCH_SIZE` | `32` | Embedding batch size (1-128) |
 
 ## Render Deployment
 
@@ -85,6 +90,8 @@ This project is configured for deployment on Render with:
 - The `./data` directory is mounted as a persistent disk to preserve SQLite data
 - The service binds to `$PORT` for Render compatibility
 - Database file: `./data/adcp_demo.sqlite3`
+- Embeddings are disabled by default (set `EMBEDDINGS_PROVIDER` to enable)
+- Set `GEMINI_API_KEY` in Render environment variables if using embeddings
 
 ## Project Structure
 
