@@ -80,7 +80,7 @@ def publisher_new_product_form(request: Request, tenant_slug: str, session: Sess
 
 
 @router.post("/{tenant_slug}/products", response_class=HTMLResponse)
-def publisher_create_product(request: Request, tenant_slug: str, session: Session = Depends(get_session),
+async def publisher_create_product(request: Request, tenant_slug: str, session: Session = Depends(get_session),
                            tenant_id: int = Form(...), name: str = Form(...),
                            description: str = Form(""), price_cpm: float = Form(...),
                            delivery_type: str = Form(...), formats_json: str = Form("{}"),
@@ -113,6 +113,20 @@ def publisher_create_product(request: Request, tenant_slug: str, session: Sessio
             session, form.tenant_id, form.name, form.description,
             form.price_cpm, form.delivery_type, form.formats_json, form.targeting_json
         )
+        
+        # Queue embedding if enabled
+        try:
+            from app.utils.embeddings_config import is_embeddings_enabled
+            from app.services.embedding_queue import get_embedding_queue
+            
+            if is_embeddings_enabled():
+                queue = get_embedding_queue()
+                enqueued = queue.enqueue_product_ids([product.id])
+                if enqueued > 0:
+                    logger.info(f"Queued product {product.id} for embedding")
+        except Exception as e:
+            logger.warning(f"Failed to queue embedding for product {product.id}: {e}")
+        
         return RedirectResponse(url=f"/publisher/{tenant_slug}/products", status_code=302)
     except Exception as e:
         return templates.TemplateResponse("publisher/products_form.html", {

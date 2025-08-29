@@ -80,6 +80,27 @@ def publisher_csv_import_action(request: Request, tenant_slug: str, session: Ses
         # Import valid rows under this tenant
         imported_count, import_errors = import_products_from_csv(session, valid_rows, tenant_id=tenant.id)
         
+        # Queue embeddings for imported products if enabled
+        enqueued_count = 0
+        try:
+            from app.utils.embeddings_config import is_embeddings_enabled
+            from app.services.embedding_queue import get_embedding_queue
+            
+            if is_embeddings_enabled() and imported_count > 0:
+                # Get the IDs of newly imported products
+                from app.models import Product
+                imported_products = session.query(Product).filter(
+                    Product.tenant_id == tenant.id
+                ).order_by(Product.id.desc()).limit(imported_count).all()
+                
+                if imported_products:
+                    product_ids = [p.id for p in imported_products]
+                    queue = get_embedding_queue()
+                    enqueued_count = queue.enqueue_product_ids(product_ids)
+                    logger.info(f"Queued {enqueued_count} imported products for embedding")
+        except Exception as e:
+            logger.warning(f"Failed to queue embeddings for imported products: {e}")
+        
         # Combine all errors
         all_errors = parse_errors + import_errors
         
@@ -92,7 +113,8 @@ def publisher_csv_import_action(request: Request, tenant_slug: str, session: Ses
                 "imported_count": imported_count,
                 "invalid_count": len(invalid_rows) + len(all_errors),
                 "errors": all_errors,
-                "tenant_column_warning": tenant_column_warning
+                "tenant_column_warning": tenant_column_warning,
+                "enqueued_count": enqueued_count
             }
         })
         

@@ -61,14 +61,21 @@ async def batch_embed_text(texts: List[str]) -> List[List[float]]:
         raise ValueError(f"Failed to generate embeddings: {e}")
 
 
-async def upsert_product_embeddings(session: Session, product_id: int, embedding: List[float]) -> None:
+async def upsert_product_embeddings(session: Session, product_id: int, embedding: List[float], 
+                                   provider: str = None, model: str = None, dim: int = None,
+                                   updated_at: str = None, embedding_hash: str = None) -> None:
     """
-    Store or update product embedding in the database.
+    Store or update product embedding in the database with metadata.
     
     Args:
         session: Database session
         product_id: Product ID
-        embedding: Embedding vector (768-dimensional)
+        embedding: Embedding vector
+        provider: Embedding provider (e.g., 'gemini')
+        model: Embedding model (e.g., 'text-embedding-004')
+        dim: Embedding dimension
+        updated_at: ISO timestamp
+        embedding_hash: Pre-computed hash
     """
     # Convert embedding to bytes for storage
     embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
@@ -76,26 +83,23 @@ async def upsert_product_embeddings(session: Session, product_id: int, embedding
     # Use raw SQL for embedding storage
     conn = session.connection().connection
     
-    # Create embeddings table if it doesn't exist
+    # Create embeddings table if it doesn't exist (with new columns)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS product_embeddings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            product_id INTEGER UNIQUE NOT NULL,
+            product_id INTEGER NOT NULL,
             embedding_text TEXT NOT NULL,
             embedding_hash TEXT NOT NULL,
             embedding BLOB NOT NULL,
+            provider TEXT,
+            model TEXT,
+            dim INTEGER,
+            updated_at TEXT,
+            is_stale INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (product_id) REFERENCES product(id)
         )
     ''')
-    
-    # Create index for faster lookups
-    conn.execute('''
-        CREATE INDEX IF NOT EXISTS idx_product_embeddings_product_id 
-        ON product_embeddings(product_id)
-    ''')
-    
-    # Note: vec0 virtual table creation removed - using basic cosine similarity instead
     
     # Get product text for embedding
     product = session.query(Product).filter(Product.id == product_id).first()
@@ -105,30 +109,42 @@ async def upsert_product_embeddings(session: Session, product_id: int, embedding
     # Create embedding text (name + description)
     embedding_text = f"{product.name}\n{product.description}"
     
-    # Create hash for change detection
-    import hashlib
-    embedding_hash = hashlib.md5(embedding_text.encode()).hexdigest()
+    # Use provided hash or create one
+    if not embedding_hash:
+        import hashlib
+        hash_input = f"{embedding_text}:{provider}:{model}:{dim}"
+        embedding_hash = hashlib.sha256(hash_input.encode()).hexdigest()
     
-    # Check if embedding already exists and is up to date
+    # Set defaults if not provided
+    if not updated_at:
+        from datetime import datetime
+        updated_at = datetime.utcnow().isoformat()
+    
+    # Check if embedding already exists for this provider/model
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT embedding_hash FROM product_embeddings WHERE product_id = ?",
-        (product_id,)
-    )
+    cursor.execute('''
+        SELECT embedding_hash, is_stale FROM product_embeddings 
+        WHERE product_id = ? AND provider = ? AND model = ?
+    ''', (product_id, provider, model))
     existing = cursor.fetchone()
     
-    if existing and existing[0] == embedding_hash:
-        # Embedding is up to date
+    if existing and existing[0] == embedding_hash and existing[1] == 0:
+        # Embedding is up to date and not stale
         return
     
-    # Insert or update embedding
+    # Mark any existing embeddings for this product/provider/model as stale
     cursor.execute('''
-        INSERT OR REPLACE INTO product_embeddings 
-        (product_id, embedding_text, embedding_hash, embedding)
-        VALUES (?, ?, ?, ?)
-    ''', (product_id, embedding_text, embedding_hash, embedding_bytes))
+        UPDATE product_embeddings 
+        SET is_stale = 1 
+        WHERE product_id = ? AND provider = ? AND model = ?
+    ''', (product_id, provider, model))
     
-    # Note: vec0 vector table update removed - using basic cosine similarity instead
+    # Insert new embedding
+    cursor.execute('''
+        INSERT INTO product_embeddings 
+        (product_id, embedding_text, embedding_hash, embedding, provider, model, dim, updated_at, is_stale)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+    ''', (product_id, embedding_text, embedding_hash, embedding_bytes, provider, model, dim, updated_at))
     
     conn.commit()
 
@@ -147,18 +163,25 @@ async def query_similar_embeddings(session: Session, tenant_id: int, query_embed
         List of product dicts with similarity scores
     """
     try:
+        # Get current embedding configuration
+        from app.utils.embeddings_config import get_embeddings_config
+        config = get_embeddings_config()
+        
         # Use raw SQL to get all embeddings for the tenant
         conn = session.connection().connection
         cursor = conn.cursor()
         
-        # Get all products with embeddings for this tenant
+        # Get all products with current embeddings for this tenant
         cursor.execute('''
             SELECT p.id, p.name, p.description, p.price_cpm, p.delivery_type,
                    p.formats_json, p.targeting_json, pe.embedding
             FROM product_embeddings pe
             JOIN product p ON pe.product_id = p.id
-            WHERE p.tenant_id = ?
-        ''', (tenant_id,))
+            WHERE p.tenant_id = ? 
+            AND pe.provider = ? 
+            AND pe.model = ? 
+            AND pe.is_stale = 0
+        ''', (tenant_id, config['provider'], config['model']))
         
         results = []
         for row in cursor.fetchall():

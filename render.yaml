@@ -12,6 +12,14 @@ services:
         value: http://localhost:8000
       - key: DEBUG
         value: 0
+      - key: EMBEDDINGS_PROVIDER
+        value: ""
+      - key: EMBEDDINGS_MODEL
+        value: text-embedding-004
+      - key: EMB_CONCURRENCY
+        value: "2"
+      - key: EMB_BATCH_SIZE
+        value: "32"
     disk:
       name: data
       mountPath: ./data

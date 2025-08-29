@@ -64,6 +64,9 @@ def get_preflight_data(db_session: Session = None) -> Dict[str, Any]:
         "using_default_prompts": using_default
     }
     
+    # Embeddings data
+    embeddings_data = _get_embeddings_data(db_session)
+    
     # Overall status
     ok = (paths_data["data_dir_exists"] and paths_data["db_file_exists"] and 
           paths_data["db_writeable"] and paths_data["mcp_routes_mounted"] and 
@@ -78,8 +81,51 @@ def get_preflight_data(db_session: Session = None) -> Dict[str, Any]:
         "reference": reference_data,
         "db_schema": db_schema_data,
         "agents": agents_data,
-        "tenants": tenants_data
+        "tenants": tenants_data,
+        "embeddings": embeddings_data
     }
+
+
+def _get_embeddings_data(db_session: Session = None) -> Dict[str, Any]:
+    """Get embeddings configuration and metrics."""
+    try:
+        from app.utils.embeddings_config import get_embeddings_config, is_embeddings_enabled
+        from app.services.embedding_queue import get_embedding_queue
+        from app.services.embeddings_backfill import get_vector_counts
+        
+        config = get_embeddings_config()
+        queue = get_embedding_queue()
+        queue_stats = queue.stats()
+        
+        # Get vector counts from database
+        vector_counts = {"vector_count_current_model": 0, "vector_count_all": 0}
+        if db_session:
+            vector_counts = get_vector_counts(db_session)
+        
+        return {
+            "embeddings_enabled": config['enabled'],
+            "embeddings_provider": config['provider'],
+            "embeddings_model": config['model'],
+            "embeddings_backlog": queue_stats['pending'],
+            "embeddings_in_progress": queue_stats['in_progress'],
+            "embeddings_completed_since_boot": queue_stats['completed_since_boot'],
+            "embeddings_failed_since_boot": queue_stats['failed_since_boot'],
+            "vector_count_current_model": vector_counts['vector_count_current_model'],
+            "vector_count_all": vector_counts['vector_count_all']
+        }
+    except Exception as e:
+        logger.warning(f"Failed to get embeddings data: {e}")
+        return {
+            "embeddings_enabled": False,
+            "embeddings_provider": None,
+            "embeddings_model": None,
+            "embeddings_backlog": 0,
+            "embeddings_in_progress": 0,
+            "embeddings_completed_since_boot": 0,
+            "embeddings_failed_since_boot": 0,
+            "vector_count_current_model": 0,
+            "vector_count_all": 0
+        }
 
 
 @router.get("/test", response_class=JSONResponse)

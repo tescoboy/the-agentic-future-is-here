@@ -71,7 +71,19 @@ async def startup_event():
         # 5. Initialize database connection
         ensure_database()
         
-        # 6. Run RAG startup checks (after database tables are created)
+        # 6. Run embeddings migrations
+        try:
+            from app.utils.embeddings_migrations import run_embeddings_migrations
+            session = next(get_session())
+            run_embeddings_migrations(session)
+            logger.info("Embeddings migrations completed successfully")
+        except Exception as e:
+            logger.warning(f"Embeddings migrations failed: {e}")
+        finally:
+            if 'session' in locals():
+                session.close()
+        
+        # 7. Run RAG startup checks (after database tables are created)
         try:
             session = next(get_session())
             # Check if product table exists before running RAG checks
@@ -88,10 +100,29 @@ async def startup_event():
             if 'session' in locals():
                 session.close()
         
+        # 8. Start embedding worker if enabled
+        try:
+            from app.services.embedding_queue import start_worker
+            await start_worker(app)
+        except Exception as e:
+            logger.warning(f"Failed to start embedding worker: {e}")
+        
     except Exception as e:
         # Log the error and re-raise to prevent startup
         logger.error(f"Startup failed: {str(e)}")
         raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown."""
+    try:
+        # Shutdown embedding worker
+        from app.services.embedding_queue import shutdown_worker
+        await shutdown_worker()
+        logger.info("Embedding worker shutdown completed")
+    except Exception as e:
+        logger.warning(f"Embedding worker shutdown failed: {e}")
 
 
 @app.get("/")

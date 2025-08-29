@@ -131,6 +131,13 @@
                     </div>
                     {% endif %}
 
+                    {% if import_result.enqueued_count and import_result.enqueued_count > 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-sync-alt"></i>
+                        <strong>Embedding queued for {{ import_result.enqueued_count }} products.</strong> Search will use lexical until vectors are ready.
+                    </div>
+                    {% endif %}
+
                     <div class="row">
                         <div class="col-md-3">
                             <div class="text-center">
