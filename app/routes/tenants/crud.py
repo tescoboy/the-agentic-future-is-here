@@ -1,5 +1,6 @@
 """Tenant CRUD routes."""
 
+import logging
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -12,6 +13,8 @@ from app.repos.tenants import (
     update_tenant, delete_tenant, bulk_delete_all_tenants
 )
 from app.utils.pagination import create_pagination_info, build_page_urls
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")

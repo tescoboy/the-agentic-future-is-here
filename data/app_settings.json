@@ -1,0 +1,13 @@
+{
+  "gemini_api_key": "test-key-for-now",
+  "embeddings_provider": "gemini",
+  "embeddings_model": null,
+  "emb_concurrency": null,
+  "emb_batch_size": null,
+  "rag_top_k": null,
+  "orchestrator_timeout": null,
+  "orchestrator_concurrency": null,
+  "circuit_breaker_fails": null,
+  "circuit_breaker_ttl": null,
+  "mcp_session_ttl": null
+}
