@@ -112,3 +112,14 @@ celerybeat.pid
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Large files (speed up deployments)
+*_backup_*.json
+*backup_*.json
+csv_backup_*.json
+small_backup_*.json
+large_backup_*.json
+catalog_final.csv
+filtering_test_results.json
+test_results_*.json
+debug_*.json
