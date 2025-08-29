@@ -54,9 +54,12 @@ app.include_router(publishers.router)
 async def startup_event():
     """Initialize application on startup."""
     try:
-        # 1. Validate reference repositories first (fail-fast)
-        repo_hashes = validate_reference_repos()
-        logger.info(f"Reference repos: salesagent=<{repo_hashes['salesagent']}>, signals-agent=<{repo_hashes['signals-agent']}>")
+        # 1. Validate reference repositories first (fail-fast) - skip in production
+        if os.environ.get('SKIP_REFERENCE_VALIDATION', 'false').lower() != 'true':
+            repo_hashes = validate_reference_repos()
+            logger.info(f"Reference repos: salesagent=<{repo_hashes['salesagent']}>, signals-agent=<{repo_hashes['signals-agent']}>")
+        else:
+            logger.info("Skipping reference repository validation (production mode)")
         
         # 2. Ensure data directory exists
         data_dir = Path("./data")
