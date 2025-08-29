@@ -235,11 +235,27 @@ def _seed_from_csv(session: Session) -> None:
     import csv
     import json
     import os
+    from pathlib import Path
     
-    csv_path = "data/tenant_products.csv"
-    if not os.path.exists(csv_path):
-        logger.warning(f"CSV file not found: {csv_path}")
+    # Try multiple possible paths
+    possible_paths = [
+        "./data/tenant_products.csv",
+        "data/tenant_products.csv",
+        "../data/tenant_products.csv",
+        Path(__file__).parent.parent.parent / "data" / "tenant_products.csv"
+    ]
+    
+    csv_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            csv_path = path
+            break
+    
+    if not csv_path:
+        logger.warning(f"CSV file not found in any of these locations: {possible_paths}")
         return
+    
+    logger.info(f"Found CSV file at: {csv_path}")
     
     # Track created tenants
     tenants = {}
@@ -247,6 +263,7 @@ def _seed_from_csv(session: Session) -> None:
     with open(csv_path, 'r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         
+        product_count = 0
         for row in reader:
             tenant_slug = row['tenant_slug']
             
@@ -257,6 +274,11 @@ def _seed_from_csv(session: Session) -> None:
             
             # Create product
             _create_product_from_csv(session, row, tenants[tenant_slug].id)
+            product_count += 1
+            
+            # Log progress every 100 products
+            if product_count % 100 == 0:
+                logger.info(f"Processed {product_count} products...")
     
     logger.info(f"Seeded {len(tenants)} tenants with products from CSV")
 
