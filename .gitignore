@@ -31,7 +31,9 @@ venv.bak/
 # Database
 *.sqlite3
 *.db
-data/
+data/*.sqlite3
+data/*.db
+data/backups/
 
 # Environment variables
 .env
