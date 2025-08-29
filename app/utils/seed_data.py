@@ -272,10 +272,19 @@ def _seed_from_csv(session: Session) -> bool:
         for row in reader:
             tenant_slug = row['tenant_slug']
             
+            # Skip rows with empty tenant slugs
+            if not tenant_slug or not tenant_slug.strip():
+                logger.warning(f"Skipping row with empty tenant_slug: {row.get('product_name', 'Unknown')}")
+                continue
+            
             # Create tenant if it doesn't exist
             if tenant_slug not in tenants:
-                tenant = _ensure_tenant_from_csv(session, tenant_slug)
-                tenants[tenant_slug] = tenant
+                try:
+                    tenant = _ensure_tenant_from_csv(session, tenant_slug)
+                    tenants[tenant_slug] = tenant
+                except ValueError as e:
+                    logger.warning(f"Skipping row due to tenant validation error: {e}")
+                    continue
             
             # Create product
             _create_product_from_csv(session, row, tenants[tenant_slug].id)
@@ -285,8 +294,8 @@ def _seed_from_csv(session: Session) -> bool:
             if product_count % 100 == 0:
                 logger.info(f"Processed {product_count} products...")
     
-                logger.info(f"Seeded {len(tenants)} tenants with products from CSV")
-            return True
+    logger.info(f"Seeded {len(tenants)} tenants with {product_count} products from CSV")
+    return True
 
 
 def _seed_basic_test_data(session: Session) -> None:
@@ -302,6 +311,10 @@ def _seed_basic_test_data(session: Session) -> None:
 
 def _ensure_tenant_from_csv(session: Session, tenant_slug: str) -> Tenant:
     """Ensure tenant exists, create if it doesn't."""
+    # Validate tenant_slug is not empty
+    if not tenant_slug or not tenant_slug.strip():
+        raise ValueError("Tenant name cannot be empty")
+    
     existing_tenant = session.query(Tenant).filter(Tenant.slug == tenant_slug).first()
     if existing_tenant:
         logger.info(f"Tenant already exists: {existing_tenant.name}")
