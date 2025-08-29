@@ -98,21 +98,18 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-plug"></i>
-                        Integration
+                        How to Integrate with 3rd Party Orchestrators
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">Use this endpoint to integrate with the Sales Agent MCP server:</p>
+                    <p class="mb-3">Do you want your Sales Agent to see demand from more Buying Agents?</p>
+                    <p class="text-muted mb-3">Your Sales Agent can be contacted using the address below. Simply give this to a 3rd party orchestrator and they can plug you into new demand sources from Buying Agents using a different platform.</p>
                     
                     <div class="mb-3">
-                        <code>POST {{ endpoint_url }}</code>
+                        <label class="form-label">Endpoint URL:</label>
+                        <input type="text" class="form-control" value="{{ endpoint_url }}" readonly>
+                        <div class="form-text">Copy this URL and call initialize followed by rank_products per MCP JSON-RPC 2.0.</div>
                     </div>
-                    
-                                           <div class="mb-3">
-                           <label class="form-label">Endpoint URL:</label>
-                           <input type="text" class="form-control" value="{{ endpoint_url }}" readonly>
-                           <div class="form-text">Copy this URL and call initialize followed by rank_products per MCP JSON-RPC 2.0.</div>
-                       </div>
                     
                     <div class="mt-3">
                         <small class="text-muted">Required headers:</small>
