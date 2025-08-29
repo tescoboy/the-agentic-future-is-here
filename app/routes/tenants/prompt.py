@@ -26,6 +26,7 @@ def prompt_admin_form(request: Request, tenant_id: int, session: Session = Depen
         "request": request,
         "tenant": tenant,
         "default_prompt": default_prompt,
+        "custom_prompt": tenant.custom_prompt or "",  # Add this line to fix the issue
         "errors": {}
     })
 
