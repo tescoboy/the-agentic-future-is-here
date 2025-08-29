@@ -8,7 +8,6 @@ import logging
 import hashlib
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import numpy as np
 
 from app.utils.embeddings_config import get_embeddings_config
 from app.utils.embeddings import batch_embed_text
