@@ -1,0 +1,110 @@
+"""
+Additional application endpoints.
+"""
+
+import logging
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
+
+def setup_endpoints(app, templates):
+    """Setup additional endpoints for the FastAPI app."""
+    
+    @app.get("/")
+    def root(request: Request):
+        """Root endpoint redirects to products."""
+        return templates.TemplateResponse("base.html", {"request": request})
+
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint for monitoring and deployment verification."""
+        return {
+            "ok": True,
+            "service": "adcp-demo"
+        }
+
+    @app.get("/test-rag/{tenant_slug}")
+    async def test_rag(tenant_slug: str, brief: str = "eco-conscious"):
+        """Test RAG pre-filter functionality."""
+        try:
+            from app.repos.tenants import get_tenant_by_slug
+            from app.services.product_rag import filter_products_for_brief
+            from app.db import get_session
+            
+            session = next(get_session())
+            tenant = get_tenant_by_slug(session, tenant_slug)
+            if not tenant:
+                return {"error": f"Tenant '{tenant_slug}' not found"}
+            
+            candidates = await filter_products_for_brief(session, tenant.id, brief, 5)
+            
+            return {
+                "tenant": tenant_slug,
+                "brief": brief,
+                "candidates_count": len(candidates),
+                "candidates": [{"product_id": c["product_id"], "name": c["name"], "score": c.get("rag_score", c.get("fts_score", 0))} for c in candidates[:3]]
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/test-env")
+    async def test_env():
+        """Test environment variable availability."""
+        import os
+        from app.utils.env import get_gemini_api_key
+        
+        return {
+            "GEMINI_API_KEY_in_os_environ": "GEMINI_API_KEY" in os.environ,
+            "GEMINI_API_KEY_value": os.environ.get("GEMINI_API_KEY", "")[:10] + "..." if os.environ.get("GEMINI_API_KEY") else None,
+            "get_gemini_api_key_available": get_gemini_api_key() is not None,
+            "get_gemini_api_key_value": get_gemini_api_key()[:10] + "..." if get_gemini_api_key() else None
+        }
+
+    @app.get("/debug/buyer/{tenant_slug}")
+    async def debug_buyer(tenant_slug: str):
+        """Debug buyer flow for a specific tenant."""
+        try:
+            from app.repos.tenants import get_tenant_by_slug
+            from app.repos.products import list_products
+            from app.db import get_session
+            
+            session = next(get_session())
+            
+            tenant = get_tenant_by_slug(session, tenant_slug)
+            if not tenant:
+                return {"error": f"Tenant '{tenant_slug}' not found"}
+            
+            products, total = list_products(session, tenant_id=tenant.id)
+            
+            from app.repos.external_agents import list_external_agents
+            agents = list_external_agents(session)
+            
+            return {
+                "tenant": {
+                    "id": tenant.id,
+                    "name": tenant.name,
+                    "slug": tenant.slug
+                },
+                "products_count": len(products),
+                "agents_count": len(agents),
+                "sample_products": [{"id": p.id, "name": p.name} for p in products[:3]],
+                "sample_agents": [{"id": a.id, "name": a.name, "endpoint_url": a.endpoint_url} for a in agents[:3]]
+            }
+        except Exception as e:
+            import traceback
+            return {
+                "error": str(e),
+                "traceback": traceback.format_exc()
+            }
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request, exc):
+        """Basic global exception handler for actionable error messages."""
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "message": str(exc) if str(exc) else "An unexpected error occurred"
+            }
+        )
