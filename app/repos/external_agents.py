@@ -2,6 +2,7 @@
 External agent repository operations.
 """
 
+from app.utils.auto_backup_simple import auto_backup
 from typing import List, Optional
 from sqlmodel import Session, select
 from app.models import ExternalAgent
@@ -24,6 +25,7 @@ def create_external_agent(session: Session, name: str, base_url: str,
     )
     session.add(agent)
     session.commit()
+    auto_backup(session, "external_agent_created")
     session.refresh(agent)
     return agent
 
@@ -75,6 +77,7 @@ def update_external_agent(session: Session, agent_id: int, name: str, base_url: 
     
     session.add(agent)
     session.commit()
+    auto_backup(session, "external_agent_created")
     session.refresh(agent)
     return agent
 
@@ -87,5 +90,6 @@ def delete_external_agent(session: Session, agent_id: int) -> bool:
     
     session.delete(agent)
     session.commit()
+    auto_backup(session, "external_agent_created")
     return True
 

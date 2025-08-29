@@ -2,6 +2,7 @@
 Product repository operations.
 """
 
+from app.utils.auto_backup_simple import auto_backup
 from typing import List, Optional
 from sqlmodel import Session, select
 from app.models import Product
@@ -22,6 +23,9 @@ def create_product(session: Session, tenant_id: int, name: str, description: str
     )
     session.add(product)
     session.commit()
+    auto_backup(session, "product_deleted")
+    auto_backup(session, "product_updated")
+    auto_backup(session, "product_created")
     session.refresh(product)
     return product
 
@@ -93,6 +97,9 @@ def update_product(session: Session, product_id: int, tenant_id: int, name: str,
     
     session.add(product)
     session.commit()
+    auto_backup(session, "product_deleted")
+    auto_backup(session, "product_updated")
+    auto_backup(session, "product_created")
     session.refresh(product)
     return product
 
@@ -105,6 +112,9 @@ def delete_product(session: Session, product_id: int) -> bool:
     
     session.delete(product)
     session.commit()
+    auto_backup(session, "product_deleted")
+    auto_backup(session, "product_updated")
+    auto_backup(session, "product_created")
     return True
 
 

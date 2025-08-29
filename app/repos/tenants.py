@@ -2,6 +2,7 @@
 Tenant repository operations.
 """
 
+from app.utils.auto_backup_simple import auto_backup
 from typing import List, Optional
 from sqlmodel import Session, select
 from app.models import Tenant
@@ -12,6 +13,7 @@ def create_tenant(session: Session, name: str, slug: str) -> Tenant:
     tenant = Tenant(name=name, slug=slug)
     session.add(tenant)
     session.commit()
+    auto_backup(session, "tenant_created")
     session.refresh(tenant)
     return tenant
 
@@ -61,6 +63,7 @@ def update_tenant(session: Session, tenant_id: int, name: str, slug: str) -> Opt
     tenant.slug = slug
     session.add(tenant)
     session.commit()
+    auto_backup(session, "tenant_created")
     session.refresh(tenant)
     return tenant
 
@@ -73,6 +76,7 @@ def delete_tenant(session: Session, tenant_id: int) -> bool:
     
     session.delete(tenant)
     session.commit()
+    auto_backup(session, "tenant_created")
     return True
 
 
@@ -95,5 +99,6 @@ def bulk_delete_all_tenants(session: Session) -> int:
         session.delete(tenant)
     
     session.commit()
+    auto_backup(session, "tenant_created")
     return deleted_count
 
