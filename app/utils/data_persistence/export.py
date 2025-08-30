@@ -20,38 +20,77 @@ logger = logging.getLogger(__name__)
 
 def export_all_data(session: Session) -> Dict[str, Any]:
     """Export all application data to a comprehensive backup."""
+    logger.info("Starting JSON backup export...")
     ensure_data_directories()
     
+    # Export data with progress logging
+    logger.info("Exporting tenants and products...")
+    tenants_data = export_tenants(session)
+    
+    logger.info("Exporting external agents...")
+    external_agents_data = export_external_agents(session)
+    
+    logger.info("Exporting application settings...")
+    app_settings_data = export_app_settings()
+    
+    logger.info("Exporting tenant settings...")
+    tenant_settings_data = export_tenant_settings()
+    
+    # Compile backup data
     backup_data = {
         "exported_at": datetime.now().isoformat(),
         "version": "1.0",
-        "tenants": export_tenants(session),
-        "external_agents": export_external_agents(session),
-        "app_settings": export_app_settings(),
-        "tenant_settings": export_tenant_settings()
+        "tenants": tenants_data,
+        "external_agents": external_agents_data,
+        "app_settings": app_settings_data,
+        "tenant_settings": tenant_settings_data
     }
     
     # Save to backup file with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_file = BACKUP_DIR / f"full_backup_{timestamp}.json"
     
+    logger.info(f"Writing backup file: {backup_file}")
     with open(backup_file, 'w', encoding='utf-8') as f:
         json.dump(backup_data, f, indent=2, ensure_ascii=False)
     
-    logger.info(f"Full backup exported to: {backup_file}")
+    # Calculate summary statistics
+    total_tenants = len(tenants_data)
+    total_products = sum(len(t['products']) for t in tenants_data)
+    total_agents = len(external_agents_data)
+    
+    logger.info(f"JSON backup completed successfully!")
+    logger.info(f"  - {total_tenants} tenants exported")
+    logger.info(f"  - {total_products} products exported")
+    logger.info(f"  - {total_agents} external agents exported")
+    logger.info(f"  - Backup file: {backup_file}")
+    
     return backup_data
 
 
 def export_tenants(session: Session) -> List[Dict[str, Any]]:
-    """Export all tenants and their products."""
-    tenants_data = []
+    """Export all tenants and their products using bulk operations."""
+    logger.info("Starting tenant and product export...")
     
-    # Get all tenants using SQLModel
+    # Get all tenants in one query
     tenants = session.exec(select(Tenant)).all()
+    logger.info(f"Found {len(tenants)} tenants")
     
+    # Get all products in one query (much faster than per-tenant queries)
+    all_products = session.exec(select(Product)).all()
+    logger.info(f"Found {len(all_products)} total products")
+    
+    # Create product lookup by tenant_id for O(1) access
+    products_by_tenant = {}
+    for product in all_products:
+        if product.tenant_id not in products_by_tenant:
+            products_by_tenant[product.tenant_id] = []
+        products_by_tenant[product.tenant_id].append(product)
+    
+    # Build tenant data with their products
+    tenants_data = []
     for tenant in tenants:
-        # Get products for this tenant using SQLModel
-        products = session.exec(select(Product).where(Product.tenant_id == tenant.id)).all()
+        tenant_products = products_by_tenant.get(tenant.id, [])
         
         tenant_data = {
             "id": tenant.id,
@@ -63,7 +102,8 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
             "products": []
         }
         
-        for product in products:
+        # Convert products to dict format in bulk
+        for product in tenant_products:
             product_data = {
                 "id": product.id,
                 "tenant_id": product.tenant_id,
@@ -79,15 +119,20 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
         
         tenants_data.append(tenant_data)
     
-    logger.info(f"Exported {len(tenants)} tenants with {sum(len(t['products']) for t in tenants_data)} products")
+    total_products = sum(len(t['products']) for t in tenants_data)
+    logger.info(f"Completed tenant export: {len(tenants)} tenants, {total_products} products")
     return tenants_data
 
 
 def export_external_agents(session: Session) -> List[Dict[str, Any]]:
-    """Export all external agents."""
-    # Get all external agents using SQLModel
-    agents = session.exec(select(ExternalAgent)).all()
+    """Export all external agents using bulk operations."""
+    logger.info("Starting external agent export...")
     
+    # Get all external agents in one query
+    agents = session.exec(select(ExternalAgent)).all()
+    logger.info(f"Found {len(agents)} external agents")
+    
+    # Convert to dict format in bulk
     agents_data = []
     for agent in agents:
         agent_data = {
@@ -101,7 +146,7 @@ def export_external_agents(session: Session) -> List[Dict[str, Any]]:
         }
         agents_data.append(agent_data)
     
-    logger.info(f"Exported {len(agents_data)} external agents")
+    logger.info(f"Completed external agent export: {len(agents_data)} agents")
     return agents_data
 
 

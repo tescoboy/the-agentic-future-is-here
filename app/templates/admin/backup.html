@@ -369,7 +369,10 @@ async function exportData() {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
             
-            showAlert('Data exported successfully!', 'success');
+            // Show detailed success message
+            const summary = data.summary;
+            const message = `JSON backup exported successfully! ${summary.tenants} tenants, ${summary.products} products, ${summary.agents} agents`;
+            showAlert(message, 'success');
         } else {
             showAlert(`Export failed: ${data.detail}`, 'danger');
         }

@@ -61,10 +61,22 @@ async def export_data_endpoint():
         session = next(get_session())
         try:
             data = export_all_data(session)
+            
+            # Calculate summary for user feedback
+            total_tenants = len(data.get('tenants', []))
+            total_products = sum(len(t.get('products', [])) for t in data.get('tenants', []))
+            total_agents = len(data.get('external_agents', []))
+            
             return {
-                "message": "Data exported successfully",
+                "message": f"Data exported successfully: {total_tenants} tenants, {total_products} products, {total_agents} agents",
                 "data": data,
-                "status": "success"
+                "status": "success",
+                "summary": {
+                    "tenants": total_tenants,
+                    "products": total_products,
+                    "agents": total_agents,
+                    "exported_at": data.get('exported_at')
+                }
             }
         finally:
             session.close()
