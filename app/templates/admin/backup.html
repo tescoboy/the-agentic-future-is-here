@@ -81,13 +81,67 @@
                 </div>
             </div>
 
-            <!-- Export/Import -->
+            <!-- CSV Export/Import -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-file-export"></i> Export Data
+                                <i class="fas fa-file-csv"></i> Export CSV Backup
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Export all data as CSV files in a zip archive. Contains separate CSV files for tenants, products, and external agents.</p>
+                            <button class="btn btn-primary" onclick="exportCsvBackup()">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-upload"></i> Import CSV Backup
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Import data from a CSV zip backup file. This will replace all existing data.</p>
+                            <input type="file" id="csv-backup-file" class="form-control mb-2" accept=".zip">
+                            <button class="btn btn-warning" onclick="importCsvBackup()">
+                                <i class="fas fa-upload"></i> Import CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CSV Backup List -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Available CSV Backups
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="csv-backups-list">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JSON Export/Import -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-export"></i> Export JSON Data
                             </h5>
                         </div>
                         <div class="card-body">
@@ -103,14 +157,14 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-file-import"></i> Import Data
+                                <i class="fas fa-file-import"></i> Import JSON Data
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted">Import data from a backup file.</p>
+                            <p class="text-muted">Import data from a JSON backup file.</p>
                             <input type="file" id="backup-file" class="form-control mb-2" accept=".json">
                             <button class="btn btn-success" onclick="importData()">
-                                <i class="fas fa-file-import"></i> Import
+                                <i class="fas fa-file-import"></i> Import JSON
                             </button>
                         </div>
                     </div>
@@ -128,6 +182,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadStatus();
     loadBackups();
+    loadCsvBackups();
 });
 
 function showAlert(message, type = 'info') {
@@ -370,6 +425,207 @@ async function importData() {
         button.innerHTML = originalText;
         button.disabled = false;
         fileInput.value = '';
+    }
+}
+
+async function loadCsvBackups() {
+    try {
+        const response = await fetch('/admin/backup/list-csv');
+        const data = await response.json();
+        
+        if (data.backups.length === 0) {
+            document.getElementById('csv-backups-list').innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>No CSV backup files found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const backupsHtml = `
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>CSV Backup File</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.backups.map(backup => `
+                            <tr>
+                                <td>${backup}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-2" onclick="downloadCsvBackup('${backup}')">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" onclick="importCsvBackupFromFile('${backup}')">
+                                        <i class="fas fa-upload"></i> Restore
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('csv-backups-list').innerHTML = backupsHtml;
+    } catch (error) {
+        document.getElementById('csv-backups-list').innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load CSV backups: ${error.message}
+            </div>
+        `;
+    }
+}
+
+async function exportCsvBackup() {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        button.disabled = true;
+        
+        const response = await fetch('/admin/backup/export-csv', { method: 'POST' });
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Extract filename from path
+            const filename = data.file_path.split('/').pop();
+            
+            // Download the file
+            const downloadResponse = await fetch(`/admin/backup/download-csv/${filename}`);
+            const blob = await downloadResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('CSV backup created and downloaded successfully!', 'success');
+            loadCsvBackups();
+        } else {
+            showAlert(`CSV export failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`CSV export failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+async function importCsvBackup() {
+    const fileInput = document.getElementById('csv-backup-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showAlert('Please select a CSV backup file', 'warning');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to import CSV data? This will completely replace all existing data.')) {
+        return;
+    }
+    
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+        button.disabled = true;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/admin/backup/import-csv', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert(`CSV data imported successfully! ${data.details.tenants_imported} tenants, ${data.details.products_imported} products, ${data.details.agents_imported} agents imported.`, 'success');
+            loadCsvBackups();
+        } else {
+            showAlert(`CSV import failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`CSV import failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
+        fileInput.value = '';
+    }
+}
+
+async function downloadCsvBackup(filename) {
+    try {
+        const response = await fetch(`/admin/backup/download-csv/${filename}`);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('CSV backup downloaded successfully!', 'success');
+    } catch (error) {
+        showAlert(`Download failed: ${error.message}`, 'danger');
+    }
+}
+
+async function importCsvBackupFromFile(filename) {
+    if (!confirm(`Are you sure you want to restore from ${filename}? This will completely replace all existing data.`)) {
+        return;
+    }
+    
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+        button.disabled = true;
+        
+        // First download the file
+        const downloadResponse = await fetch(`/admin/backup/download-csv/${filename}`);
+        const blob = await downloadResponse.blob();
+        
+        // Create a file from the blob
+        const file = new File([blob], filename, { type: 'application/zip' });
+        
+        // Upload and import
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/admin/backup/import-csv', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert(`CSV backup restored successfully! ${data.details.tenants_imported} tenants, ${data.details.products_imported} products, ${data.details.agents_imported} agents imported.`, 'success');
+            loadCsvBackups();
+        } else {
+            showAlert(`CSV restore failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`CSV restore failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
     }
 }
 </script>

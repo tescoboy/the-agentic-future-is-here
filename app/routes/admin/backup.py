@@ -13,6 +13,10 @@ from app.utils.data_persistence import (
     create_backup, restore_backup, list_backups,
     export_all_data, import_all_data
 )
+from app.utils.csv_backup import (
+    export_to_csv_zip, import_from_csv_zip, list_csv_backups
+)
+from app.utils.data_persistence import BACKUP_DIR
 from app.db import get_session
 
 templates = Jinja2Templates(directory="app/templates")
@@ -124,6 +128,92 @@ async def backup_status_endpoint():
             "status": "error",
             "error": str(e)
         }
+
+
+@router.post("/export-csv")
+async def export_csv_backup_endpoint():
+    """Export all data as CSV files in a zip archive."""
+    try:
+        session = next(get_session())
+        try:
+            zip_path = export_to_csv_zip(session)
+            return {
+                "message": "CSV backup created successfully",
+                "file_path": zip_path,
+                "status": "success"
+            }
+        finally:
+            session.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"CSV export failed: {str(e)}")
+
+
+@router.post("/import-csv")
+async def import_csv_backup_endpoint(file: UploadFile = File(...)):
+    """Import data from uploaded CSV zip file."""
+    try:
+        # Validate file type
+        if not file.filename.endswith('.zip'):
+            raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+        
+        # Save uploaded file temporarily
+        temp_file = BACKUP_DIR / f"temp_import_{file.filename}"
+        with open(temp_file, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        try:
+            # Import the data
+            session = next(get_session())
+            try:
+                result = import_from_csv_zip(session, str(temp_file))
+                return {
+                    "message": "CSV data imported successfully",
+                    "status": "success",
+                    "details": result
+                }
+            finally:
+                session.close()
+        finally:
+            # Clean up temp file
+            if temp_file.exists():
+                temp_file.unlink()
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"CSV import failed: {str(e)}")
+
+
+@router.get("/list-csv")
+async def list_csv_backups_endpoint():
+    """List all available CSV backup files."""
+    try:
+        backups = list_csv_backups()
+        return {"backups": backups, "count": len(backups)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list CSV backups: {str(e)}")
+
+
+@router.get("/download-csv/{filename}")
+async def download_csv_backup_endpoint(filename: str):
+    """Download a specific CSV backup file."""
+    try:
+        from fastapi.responses import FileResponse
+        file_path = BACKUP_DIR / filename
+        
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Backup file not found")
+        
+        return FileResponse(
+            path=file_path,
+            filename=filename,
+            media_type='application/zip'
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
 
 
 @router.get("/", response_class=HTMLResponse)
