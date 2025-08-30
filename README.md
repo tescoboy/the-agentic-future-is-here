@@ -76,7 +76,7 @@ make smoke
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENABLE_WEB_CONTEXT` | `0` | Global flag to enable/disable web grounding |
-| `WEB_CONTEXT_TIMEOUT_MS` | `2000` | Timeout for web context fetching (100-10000ms) |
+| `WEB_CONTEXT_TIMEOUT_MS` | `2000` | Timeout for web context fetching (100-300000ms) |
 | `WEB_CONTEXT_MAX_SNIPPETS` | `3` | Maximum number of snippets to fetch (1-10) |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model to use for web grounding |
 | `GEMINI_API_KEY` | - | Required API key for Gemini (only when grounding enabled) |

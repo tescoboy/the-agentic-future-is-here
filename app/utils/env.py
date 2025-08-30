@@ -74,8 +74,8 @@ def get_web_grounding_config() -> Dict[str, Any]:
     # Validate and convert timeout
     try:
         timeout_ms = int(timeout_ms_str)
-        if timeout_ms < 100 or timeout_ms > 10000:
-            raise ValueError("WEB_CONTEXT_TIMEOUT_MS must be between 100 and 10000")
+        if timeout_ms < 100 or timeout_ms > 300000:  # Allow up to 5 minutes
+            raise ValueError("WEB_CONTEXT_TIMEOUT_MS must be between 100 and 300000")
         logger.info(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS parsed as: {timeout_ms}")
     except ValueError:
         logger.error(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS has invalid value: '{timeout_ms_str}'")
