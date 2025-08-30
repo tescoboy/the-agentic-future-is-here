@@ -205,7 +205,7 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                                 snippet = result["snippets"][0]  # Take the first snippet
                                 all_snippets.append(snippet)
                                 product_snippets[product.id] = snippet
-                                logger.info(f"WEB_DEBUG: Product {product.name} snippet: {snippet[:100]}...")
+                                logger.info(f"WEB_DEBUG: Product {product.name} snippet: {snippet}")
                             else:
                                 logger.info(f"WEB_DEBUG: No snippet generated for product {product.name}")
                                 

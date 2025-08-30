@@ -168,6 +168,65 @@ Response format:
         response_text = response.text.strip()
         logger.info(f"WEB_DEBUG: Raw response text: {response_text[:200]}...")
         
+        # Try to parse as JSON first (common with structured prompts)
+        try:
+            import json
+            # Remove markdown code blocks if present
+            if response_text.startswith('```json'):
+                response_text = response_text[7:]  # Remove ```json
+            if response_text.startswith('```'):
+                response_text = response_text[3:]  # Remove ```
+            if response_text.endswith('```'):
+                response_text = response_text[:-3]  # Remove trailing ```
+            
+            response_text = response_text.strip()
+            parsed_json = json.loads(response_text)
+            
+            if isinstance(parsed_json, dict) and "snippets" in parsed_json:
+                # Extract snippets from JSON structure
+                json_snippets = parsed_json["snippets"]
+                if isinstance(json_snippets, list):
+                    for snippet in json_snippets[:max_snippets]:
+                        if isinstance(snippet, str) and len(snippet) > 10:
+                            # Enforce character limit
+                            if len(snippet) > 350:
+                                snippet = snippet[:347] + "..."
+                            snippets.append(snippet)
+                    
+                    logger.info(f"WEB_DEBUG: Successfully parsed {len(snippets)} snippets from JSON response")
+                    # Skip the plain text parsing below
+                    if snippets:
+                        # Enforce total character limit
+                        total_chars = sum(len(s) for s in snippets)
+                        if total_chars > 1000:
+                            # Trim snippets to fit within limit
+                            trimmed_snippets = []
+                            current_total = 0
+                            for snippet in snippets:
+                                if current_total + len(snippet) <= 1000:
+                                    trimmed_snippets.append(snippet)
+                                    current_total += len(snippet)
+                                else:
+                                    break
+                            snippets = trimmed_snippets
+                        
+                        # Remove duplicates
+                        seen = set()
+                        unique_snippets = []
+                        for snippet in snippets:
+                            if snippet not in seen:
+                                seen.add(snippet)
+                                unique_snippets.append(snippet)
+                        
+                        return {
+                            "snippets": unique_snippets,
+                            "metadata": metadata
+                        }
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            logger.info(f"WEB_DEBUG: Not a valid JSON response, falling back to text parsing: {str(e)}")
+            # Continue with plain text parsing below
+        
+        # Fallback to plain text parsing
         if response_text:
             # Split on bullet points, line breaks, or numbered lists
             lines = re.split(r'[\n•\-\*\d+\.]', response_text)
