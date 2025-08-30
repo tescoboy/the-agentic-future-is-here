@@ -237,6 +237,12 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         
         # Step 5: Call AI ranking on filtered candidates with web grounding results
         try:
+            # Debug: Log what's being passed to AI ranking
+            logger.info(f"AI_DEBUG: Calling AI ranking with web_grounding_results: {web_grounding_results is not None}")
+            if web_grounding_results:
+                logger.info(f"AI_DEBUG: Web grounding results keys: {list(web_grounding_results.keys())}")
+                logger.info(f"AI_DEBUG: Number of product snippets: {len(web_grounding_results.get('product_snippets', {}))}")
+            
             ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt, web_snippets, web_grounding_results)
             
             # Log prompt source (not content)
