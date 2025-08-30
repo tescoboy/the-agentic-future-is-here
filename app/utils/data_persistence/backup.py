@@ -48,8 +48,21 @@ def list_backups() -> List[str]:
 def auto_backup_on_startup(session: Session) -> None:
     """Automatically create a backup on startup."""
     try:
-        export_all_data(session)
-        logger.info("Auto-backup created on startup")
+        # Check if database has data before creating backup
+        from app.models import Tenant, Product, ExternalAgent
+        from sqlmodel import select
+        
+        tenant_count = len(session.exec(select(Tenant)).all())
+        product_count = len(session.exec(select(Product)).all())
+        agent_count = len(session.exec(select(ExternalAgent)).all())
+        
+        total_records = tenant_count + product_count + agent_count
+        
+        if total_records > 0:
+            export_all_data(session)
+            logger.info("Auto-backup created on startup")
+        else:
+            logger.info("Database is empty, skipping auto-backup")
     except Exception as e:
         logger.warning(f"Auto-backup failed: {e}")
 
