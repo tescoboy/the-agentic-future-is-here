@@ -27,7 +27,7 @@ services:
       - key: ENABLE_WEB_CONTEXT
         value: "1"
       - key: WEB_CONTEXT_TIMEOUT_MS
-        value: "15000"
+        value: "120000"
       - key: WEB_CONTEXT_MAX_SNIPPETS
         value: "3"
       - key: GEMINI_MODEL
