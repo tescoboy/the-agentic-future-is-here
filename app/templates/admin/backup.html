@@ -25,6 +25,11 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mt-3">
+                        <button class="btn btn-info btn-sm" onclick="testDisk()">
+                            <i class="fas fa-hdd"></i> Test Persistent Disk
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -585,6 +590,30 @@ async function downloadCsvBackup(filename) {
         showAlert('CSV backup downloaded successfully!', 'success');
     } catch (error) {
         showAlert(`Download failed: ${error.message}`, 'danger');
+    }
+}
+
+async function testDisk() {
+    try {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        button.disabled = true;
+        
+        const response = await fetch('/admin/backup/test-disk');
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert(`Disk test: ${data.message}`, 'success');
+        } else {
+            showAlert(`Disk test failed: ${data.detail}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Disk test failed: ${error.message}`, 'danger');
+    } finally {
+        const button = event.target;
+        button.innerHTML = originalText;
+        button.disabled = false;
     }
 }
 

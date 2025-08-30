@@ -6,6 +6,7 @@ import logging
 import os
 from typing import List, Optional
 from sqlmodel import Session
+from datetime import datetime
 
 from .export import export_all_data
 from .import_utils import import_all_data
@@ -121,3 +122,39 @@ def auto_restore_on_startup(session: Session) -> None:
             logger.info("Database is empty but no backup files found for auto-restore")
     except Exception as e:
         logger.warning(f"Auto-restore failed: {e}")
+
+
+def test_persistent_disk() -> str:
+    """Test if the persistent disk is working by writing and reading a test file."""
+    try:
+        ensure_data_directories()
+        
+        # Write a test file
+        test_file = BACKUP_DIR / "disk_test.txt"
+        test_content = f"Disk test at {datetime.now().isoformat()}"
+        
+        logger.info(f"DISK_TEST: Writing test file to {test_file}")
+        test_file.write_text(test_content)
+        
+        # Verify file was written
+        if test_file.exists():
+            file_size = test_file.stat().st_size
+            logger.info(f"DISK_TEST: Test file created successfully (size: {file_size} bytes)")
+            
+            # Read the file back
+            read_content = test_file.read_text()
+            if read_content == test_content:
+                logger.info("DISK_TEST: File read/write test PASSED")
+                return f"Persistent disk test PASSED - file written and read successfully (size: {file_size} bytes)"
+            else:
+                logger.error("DISK_TEST: File content mismatch")
+                return "Persistent disk test FAILED - file content mismatch"
+        else:
+            logger.error("DISK_TEST: Test file was not created")
+            return "Persistent disk test FAILED - file not created"
+            
+    except Exception as e:
+        logger.error(f"DISK_TEST: Test failed with error: {e}")
+        import traceback
+        logger.error(f"DISK_TEST: Traceback: {traceback.format_exc()}")
+        return f"Persistent disk test FAILED - {str(e)}"

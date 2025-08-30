@@ -13,6 +13,7 @@ from app.utils.data_persistence import (
     create_backup, restore_backup, list_backups,
     export_all_data, import_all_data
 )
+from app.utils.data_persistence.backup import test_persistent_disk
 from app.utils.csv_backup import (
     export_to_csv_zip, import_from_csv_zip, list_csv_backups
 )
@@ -226,6 +227,16 @@ async def download_csv_backup_endpoint(filename: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
+
+@router.get("/test-disk")
+async def test_disk_endpoint():
+    """Test if the persistent disk is working."""
+    try:
+        result = test_persistent_disk()
+        return {"message": result, "status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Disk test failed: {str(e)}")
 
 
 @router.get("/", response_class=HTMLResponse)

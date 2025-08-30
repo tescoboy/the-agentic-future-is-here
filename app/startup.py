@@ -16,9 +16,17 @@ async def startup_event():
         # 1. Skip reference validation in production
         logger.info("Skipping reference repository validation (production mode)")
         
-        # 2. Ensure data directory exists
+        # 2. Ensure data directory exists and test persistent disk
         data_dir = Path("./data")
         data_dir.mkdir(exist_ok=True)
+        
+        # Test persistent disk functionality
+        try:
+            from app.utils.data_persistence.backup import test_persistent_disk
+            disk_test_result = test_persistent_disk()
+            logger.info(f"Persistent disk test: {disk_test_result}")
+        except Exception as e:
+            logger.warning(f"Persistent disk test failed: {e}")
         
         # 3. Create base tables
         create_all_tables()

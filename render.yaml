@@ -35,8 +35,9 @@ services:
         value: "gemini-1.5-pro"
       - key: ORCH_TIMEOUT_MS_DEFAULT
         value: "300000"
+    # Persistent disk for database and backups - survives deployments
     disk:
       name: data
       mountPath: ./data
-      sizeGB: 1
+      sizeGB: 2
 
