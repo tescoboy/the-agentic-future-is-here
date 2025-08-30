@@ -14,7 +14,12 @@ from app.models import Product
 from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 
-logger = logging.getLogger(__name__)
+# Ensure logger is always available
+try:
+    logger = logging.getLogger(__name__)
+except Exception as e:
+    print(f"WARNING: Failed to get logger: {e}")
+    logger = logging.getLogger("product_rag")
 
 # Default constants copied from signals-agent
 DEFAULT_TOP_K = 50
@@ -273,6 +278,17 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
     Returns:
         List of product dicts with {product_id, rag_score, match_reason}
     """
+    # Debug: Check if logger is available
+    try:
+        print(f"DEBUG: logger available: {logger is not None}")
+        print(f"DEBUG: logger name: {logger.name}")
+    except NameError as e:
+        print(f"DEBUG: logger not defined: {e}")
+        # Re-import logger if needed
+        import logging
+        logger = logging.getLogger(__name__)
+        print(f"DEBUG: re-imported logger: {logger.name}")
+    
     if not brief or not brief.strip():
         return []
     
