@@ -7,19 +7,11 @@ Implements RAG/FTS/Hybrid search pipeline for filtering buyer briefs against ten
 before sending top-K candidates to AI ranking.
 """
 
-import logging
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 from app.models import Product
 from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
-
-# Ensure logger is always available with fallback
-try:
-    logger = logging.getLogger(__name__)
-except Exception as e:
-    print(f"WARNING: Failed to get logger: {e}")
-    logger = logging.getLogger("product_rag")
 
 # Default constants copied from signals-agent
 DEFAULT_TOP_K = 50
@@ -118,7 +110,7 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         
         api_key = get_gemini_api_key()
         if not api_key:
-            print("WARNING: Gemini API key not available, skipping query expansion")
+            print("Gemini API key not available, skipping query expansion")
             return [brief]
         
         genai.configure(api_key=api_key)
@@ -145,7 +137,7 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         return expanded_terms[:6]  # Limit to 6 terms
         
     except Exception as e:
-        print(f"WARNING: Query expansion failed: {e}")
+        print(f"Query expansion failed: {e}")
         return [brief]  # Fall back to original query
 
 
@@ -179,7 +171,7 @@ async def semantic_search(session: Session, tenant_id: int, brief: str, limit: i
         return results
         
     except Exception as e:
-        print(f"ERROR: Semantic search failed: {e}")
+        print(f"Semantic search failed: {e}")
         return []
 
 
@@ -207,7 +199,7 @@ async def fts_search(session: Session, tenant_id: int, brief: str, limit: int) -
         return results
         
     except Exception as e:
-        print(f"ERROR: FTS search failed: {e}")
+        print(f"FTS search failed: {e}")
         return []
 
 
@@ -278,6 +270,8 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
     Returns:
         List of product dicts with {product_id, rag_score, match_reason}
     """
+    print(f"DEBUG: filter_products_for_brief called with tenant_id={tenant_id}, brief='{brief[:50]}...', limit={limit}")
+    
     if not brief or not brief.strip():
         return []
     
@@ -293,7 +287,7 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
                 brief = ' '.join(expanded_terms)
                 expanded = True
         except Exception as e:
-            print(f"WARNING: Query expansion failed: {e}")
+            print(f"Query expansion failed: {e}")
     
     results = []
     
@@ -301,7 +295,7 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
         results = await semantic_search(session, tenant_id, brief, limit)
         # Fall back to FTS if semantic search returns no results
         if not results:
-            print(f"INFO: Semantic search returned no results, falling back to FTS for: {brief[:50]}...")
+            print(f"Semantic search returned no results, falling back to FTS for: {brief[:50]}...")
             results = await fts_search(session, tenant_id, brief, limit)
         
     elif strategy == 'fts':
@@ -316,6 +310,6 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
         results = hybrid_rank(rag_results, fts_results, limit)
     
     # Log the search strategy used
-    print(f"INFO: rag_strategy={strategy} expanded={expanded} candidates={len(results)}")
+    print(f"rag_strategy={strategy} expanded={expanded} candidates={len(results)}")
     
     return results
