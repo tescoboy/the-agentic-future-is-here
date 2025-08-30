@@ -58,6 +58,8 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
             # Default web grounding prompt
             system_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context about a specific Netflix product.
 
+IMPORTANT: Extract the specific show, actor, or content name from the product name and research ONLY that specific content.
+
 Focus on researching the specific Netflix product provided and gather concise snippets that will help an advertiser understand why this particular product is a strong fit for the brief.
 
 Campaign Brief:
@@ -67,14 +69,15 @@ Specific Netflix Product to Research:
 {product_catalog}
 
 Instructions:
-1. Search for up-to-date information about the specific Netflix product listed above.
-2. Extract **short, factual snippets** (≤350 characters each) that describe:
+1. FIRST: Extract the specific show/actor name from the product name (e.g., "Netflix Ozark Package" → research "Ozark")
+2. Search for up-to-date information about that SPECIFIC show/actor/content.
+3. Extract **short, factual snippets** (≤350 characters each) that describe:
    - The specific show's audience, cultural relevance, or themes
    - Recent popularity, awards, or positive press coverage for this specific content
    - Key actors, storylines, or events tied to this specific show/product
-3. Write snippets that can be directly used to justify why this specific product aligns with the advertiser's brief.
-4. Do not invent information. Only include details from real search results about this specific product.
-5. Return plain snippets, no formatting.
+4. Write snippets that can be directly used to justify why this specific product aligns with the advertiser's brief.
+5. Do not invent information. Only include details from real search results about this specific product.
+6. DO NOT return generic Netflix content - focus ONLY on the specific show/actor mentioned in the product name.
 
 Response format:
 {
