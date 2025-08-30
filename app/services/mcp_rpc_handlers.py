@@ -143,6 +143,11 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         # Filter products to only include RAG candidates
         candidate_products = [p for p in products if p.id in candidate_product_ids]
         
+        # Limit to top 15 products to prevent timeout and high token usage
+        if len(candidate_products) > 15:
+            logger.info(f"Limiting RAG candidates from {len(candidate_products)} to top 15 products to prevent timeout")
+            candidate_products = candidate_products[:15]
+        
         if not candidate_products:
             # No products found for candidates, return empty results
             logger.warning(f"No products found for RAG candidates: {candidate_product_ids}")
@@ -165,7 +170,10 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                     all_snippets = []
                     product_snippets = {}
                     
-                    for product in candidate_products:
+                    logger.info(f"WEB_DEBUG: Starting web grounding for {len(candidate_products)} products")
+                    
+                    for i, product in enumerate(candidate_products, 1):
+                        logger.info(f"WEB_DEBUG: Processing product {i}/{len(candidate_products)}: {product.name}")
                         # Prepare context for this specific product
                         context = {
                             "brief": brief,
