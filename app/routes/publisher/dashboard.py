@@ -58,6 +58,7 @@ def update_ai_enrichment_settings(
     tenant_slug: str, 
     enable_web_context: bool = Form(False),
     web_grounding_prompt: str = Form(None),
+    custom_prompt: str = Form(None),
     session: Session = Depends(get_session)
 ):
     """Update AI enrichment settings for a tenant."""
@@ -70,16 +71,22 @@ def update_ai_enrichment_settings(
         # Update web grounding prompt
         if web_grounding_prompt is not None:
             tenant.web_grounding_prompt = web_grounding_prompt.strip() if web_grounding_prompt.strip() else None
-            session.add(tenant)
-            session.commit()
+        
+        # Update custom sales agent prompt
+        if custom_prompt is not None:
+            tenant.custom_prompt = custom_prompt.strip() if custom_prompt.strip() else None
+        
+        # Save all changes
+        session.add(tenant)
+        session.commit()
         
         # Redirect back to dashboard with success message
         response = RedirectResponse(url=f"/publisher/{tenant_slug}/", status_code=302)
-        response.headers["Set-Cookie"] = "success_message=AI enrichment settings updated successfully; Path=/; Max-Age=5"
+        response.headers["Set-Cookie"] = "success_message=AI prompt settings updated successfully; Path=/; Max-Age=5"
         return response
         
     except Exception as e:
         logger.error(f"Failed to update AI enrichment settings for tenant {tenant_slug}: {str(e)}")
         response = RedirectResponse(url=f"/publisher/{tenant_slug}/", status_code=302)
-        response.headers["Set-Cookie"] = "error_message=Failed to update AI enrichment settings; Path=/; Max-Age=5"
+        response.headers["Set-Cookie"] = "error_message=Failed to update AI prompt settings; Path=/; Max-Age=5"
         return response

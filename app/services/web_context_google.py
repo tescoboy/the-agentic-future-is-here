@@ -55,7 +55,35 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
             from app.utils.macro_processor import MacroProcessor
             system_prompt = MacroProcessor.process_prompt(custom_prompt, context)
         else:
-            system_prompt = """Based on current digital advertising knowledge, provide 2-3 brief insights about media trends and audience behavior that could help with this campaign. Keep each insight under 200 characters."""
+            # Default web grounding prompt
+            system_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context. 
+
+Focus on products from Netflix's catalogue (shows, actors, genres, or packages) 
+and gather concise snippets that will help an advertiser understand why Netflix inventory is a strong fit for the brief.
+
+Campaign Brief:
+{brief}
+
+Netflix Products to Research:
+{product_catalog}
+
+Instructions:
+1. Search for up-to-date information on each Netflix show, actor, or package listed.
+2. Extract **short, factual snippets** (≤350 characters each) that describe:
+   - The show's audience, cultural relevance, or themes
+   - Recent popularity, awards, or positive press coverage
+   - Key actors, storylines, or events tied to the show
+3. Write snippets that can be directly used to justify why a product aligns with the advertiser's brief.
+4. Do not invent information. Only include details from real search results.
+5. Return plain snippets, no formatting.
+
+Response format:
+{
+  "snippets": [
+    "Snippet 1 here…",
+    "Snippet 2 here…"
+  ]
+}"""
         
         # Execute web search with timeout
         try:
