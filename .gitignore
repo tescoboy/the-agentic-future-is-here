@@ -133,3 +133,4 @@ data/backups/*.zip
 # Large data files
 catalog_final_hg.csv
 catalog_final.csv
+data/tenant_products.csv
