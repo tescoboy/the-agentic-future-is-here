@@ -74,8 +74,6 @@ def get_web_grounding_config() -> Dict[str, Any]:
     # Validate and convert timeout
     try:
         timeout_ms = int(timeout_ms_str)
-        if timeout_ms < 100 or timeout_ms > 300000:  # Allow up to 5 minutes
-            raise ValueError("WEB_CONTEXT_TIMEOUT_MS must be between 100 and 300000")
         logger.info(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS parsed as: {timeout_ms}")
     except ValueError:
         logger.error(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS has invalid value: '{timeout_ms_str}'")
@@ -84,8 +82,6 @@ def get_web_grounding_config() -> Dict[str, Any]:
     # Validate and convert max snippets
     try:
         max_snippets = int(max_snippets_str)
-        if max_snippets < 1 or max_snippets > 10:
-            raise ValueError("WEB_CONTEXT_MAX_SNIPPETS must be between 1 and 10")
         logger.info(f"WEB_DEBUG: WEB_CONTEXT_MAX_SNIPPETS parsed as: {max_snippets}")
     except ValueError:
         logger.error(f"WEB_DEBUG: WEB_CONTEXT_MAX_SNIPPETS has invalid value: '{max_snippets_str}'")
