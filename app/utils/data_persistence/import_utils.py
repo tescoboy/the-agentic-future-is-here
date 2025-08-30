@@ -78,6 +78,13 @@ def import_tenants_and_products(session: Session, tenants_data: List[Dict[str, A
         if existing_tenant:
             logger.info(f"Tenant already exists: {existing_tenant.name}")
             tenant = existing_tenant
+            # Update tenant fields if they exist in backup
+            if "custom_prompt" in tenant_data:
+                tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "enable_web_context" in tenant_data:
+                tenant.enable_web_context = tenant_data["enable_web_context"]
+            session.add(tenant)
+            session.commit()
         else:
             # Create tenant
             tenant = create_tenant(
@@ -86,6 +93,14 @@ def import_tenants_and_products(session: Session, tenants_data: List[Dict[str, A
                 slug=tenant_data["slug"]
             )
             logger.info(f"Created tenant: {tenant.name}")
+            
+            # Update additional fields after creation
+            if "custom_prompt" in tenant_data:
+                tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "enable_web_context" in tenant_data:
+                tenant.enable_web_context = tenant_data["enable_web_context"]
+            session.add(tenant)
+            session.commit()
         
         tenant_map[tenant_data["id"]] = tenant
     
@@ -133,6 +148,13 @@ def import_tenants(session: Session, tenants_data: List[Dict[str, Any]]) -> None
         if existing_tenant:
             logger.info(f"Tenant already exists: {existing_tenant.name}")
             tenant = existing_tenant
+            # Update tenant fields if they exist in backup
+            if "custom_prompt" in tenant_data:
+                tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "enable_web_context" in tenant_data:
+                tenant.enable_web_context = tenant_data["enable_web_context"]
+            session.add(tenant)
+            session.commit()
         else:
             # Create tenant
             tenant = create_tenant(
@@ -141,6 +163,14 @@ def import_tenants(session: Session, tenants_data: List[Dict[str, Any]]) -> None
                 slug=tenant_data["slug"]
             )
             logger.info(f"Created tenant: {tenant.name}")
+            
+            # Update additional fields after creation
+            if "custom_prompt" in tenant_data:
+                tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "enable_web_context" in tenant_data:
+                tenant.enable_web_context = tenant_data["enable_web_context"]
+            session.add(tenant)
+            session.commit()
         
         # Import products
         for product_data in tenant_data.get("products", []):
