@@ -1,4 +1,5 @@
 services:
+  # Web service for ADCP demo application
   - type: web
     name: adcp-demo
     env: python
