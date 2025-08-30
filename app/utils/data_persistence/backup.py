@@ -76,7 +76,7 @@ def auto_restore_on_startup(session: Session) -> None:
         if backup_files:
             latest_backup = max(backup_files, key=os.path.getctime)
             logger.info(f"Database is empty, auto-restoring from: {latest_backup.name}")
-            import_all_data(session, backup_file=str(latest_backup))
+            import_all_data(session, backup_file=latest_backup.name)
             logger.info(f"Auto-restore completed successfully from: {latest_backup.name}")
         else:
             logger.info("Database is empty but no backup files found for auto-restore")
