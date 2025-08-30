@@ -56,25 +56,24 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
             system_prompt = MacroProcessor.process_prompt(custom_prompt, context)
         else:
             # Default web grounding prompt
-            system_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context. 
+            system_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context about a specific Netflix product.
 
-Focus on products from Netflix's catalogue (shows, actors, genres, or packages) 
-and gather concise snippets that will help an advertiser understand why Netflix inventory is a strong fit for the brief.
+Focus on researching the specific Netflix product provided and gather concise snippets that will help an advertiser understand why this particular product is a strong fit for the brief.
 
 Campaign Brief:
 {brief}
 
-Netflix Products to Research:
+Specific Netflix Product to Research:
 {product_catalog}
 
 Instructions:
-1. Search for up-to-date information on each Netflix show, actor, or package listed.
+1. Search for up-to-date information about the specific Netflix product listed above.
 2. Extract **short, factual snippets** (≤350 characters each) that describe:
-   - The show's audience, cultural relevance, or themes
-   - Recent popularity, awards, or positive press coverage
-   - Key actors, storylines, or events tied to the show
-3. Write snippets that can be directly used to justify why a product aligns with the advertiser's brief.
-4. Do not invent information. Only include details from real search results.
+   - The specific show's audience, cultural relevance, or themes
+   - Recent popularity, awards, or positive press coverage for this specific content
+   - Key actors, storylines, or events tied to this specific show/product
+3. Write snippets that can be directly used to justify why this specific product aligns with the advertiser's brief.
+4. Do not invent information. Only include details from real search results about this specific product.
 5. Return plain snippets, no formatting.
 
 Response format:
