@@ -189,6 +189,11 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                             ]
                         }
                         
+                        # Debug: Log the product information being passed
+                        logger.info(f"WEB_DEBUG: Product info for {product.name}:")
+                        logger.info(f"WEB_DEBUG:   - Name: {product.name}")
+                        logger.info(f"WEB_DEBUG:   - Description: {product.description}")
+                        
                         try:
                             # Get web grounding for this specific product
                             result = await fetch_web_context(
