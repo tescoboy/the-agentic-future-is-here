@@ -151,6 +151,8 @@ def import_tenants(session: Session, tenants_data: List[Dict[str, Any]]) -> None
             # Update tenant fields if they exist in backup
             if "custom_prompt" in tenant_data:
                 tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "web_grounding_prompt" in tenant_data:
+                tenant.web_grounding_prompt = tenant_data["web_grounding_prompt"]
             if "enable_web_context" in tenant_data:
                 tenant.enable_web_context = tenant_data["enable_web_context"]
             session.add(tenant)
@@ -167,6 +169,8 @@ def import_tenants(session: Session, tenants_data: List[Dict[str, Any]]) -> None
             # Update additional fields after creation
             if "custom_prompt" in tenant_data:
                 tenant.custom_prompt = tenant_data["custom_prompt"]
+            if "web_grounding_prompt" in tenant_data:
+                tenant.web_grounding_prompt = tenant_data["web_grounding_prompt"]
             if "enable_web_context" in tenant_data:
                 tenant.enable_web_context = tenant_data["enable_web_context"]
             session.add(tenant)

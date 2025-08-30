@@ -69,6 +69,26 @@ def run_migrations():
                 except Exception as e:
                     raise RuntimeError(f"Migration failed for table tenant. SQL: {sql}. Error: {str(e)}")
             
+            # Add web_grounding_prompt column if missing
+            if "web_grounding_prompt" not in columns:
+                sql = "ALTER TABLE tenant ADD COLUMN web_grounding_prompt TEXT"
+                try:
+                    conn.execute(text(sql))
+                    conn.commit()
+                    logger.info("Added web_grounding_prompt column to tenant table")
+                except Exception as e:
+                    raise RuntimeError(f"Migration failed for table tenant. SQL: {sql}. Error: {str(e)}")
+            
+            # Add enable_web_context column if missing
+            if "enable_web_context" not in columns:
+                sql = "ALTER TABLE tenant ADD COLUMN enable_web_context BOOLEAN DEFAULT 0"
+                try:
+                    conn.execute(text(sql))
+                    conn.commit()
+                    logger.info("Added enable_web_context column to tenant table")
+                except Exception as e:
+                    raise RuntimeError(f"Migration failed for table tenant. SQL: {sql}. Error: {str(e)}")
+            
             logger.info("DB migrations complete: tenant custom_prompt validated")
             
     except Exception as e:
