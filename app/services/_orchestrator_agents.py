@@ -39,10 +39,21 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
             web_snippets = None
             web_grounding_ok = True
             
+            # DEBUG: Log web grounding configuration and tenant status
+            logger.info(f"WEB_DEBUG: Starting web grounding check for tenant={tenant.slug}")
+            logger.info(f"WEB_DEBUG: web_config received: {web_config}")
+            logger.info(f"WEB_DEBUG: tenant.enable_web_context attribute exists: {hasattr(tenant, 'enable_web_context')}")
+            if hasattr(tenant, 'enable_web_context'):
+                logger.info(f"WEB_DEBUG: tenant.enable_web_context value: {tenant.enable_web_context}")
+                logger.info(f"WEB_DEBUG: tenant.enable_web_context type: {type(tenant.enable_web_context)}")
+            
             if web_config and web_config.get("enabled", False):
+                logger.info(f"WEB_DEBUG: Global web grounding is ENABLED")
                 # Check if tenant has web context enabled
                 if hasattr(tenant, 'enable_web_context') and tenant.enable_web_context:
+                    logger.info(f"WEB_DEBUG: Tenant web grounding is ENABLED - proceeding with web context fetch")
                     try:
+                        logger.info(f"WEB_DEBUG: Calling fetch_web_context with timeout={web_config['timeout_ms']}, max_snippets={web_config['max_snippets']}, model={web_config['model']}, provider={web_config['provider']}")
                         result = await fetch_web_context(
                             brief, 
                             web_config["timeout_ms"], 
@@ -51,13 +62,17 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
                             web_config["provider"]
                         )
                         web_snippets = result["snippets"]
+                        logger.info(f"WEB_DEBUG: Web context fetch successful, got {len(web_snippets)} snippets")
                         logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets={len(web_snippets)} ok=true")
                     except Exception as e:
                         web_grounding_ok = False
+                        logger.error(f"WEB_DEBUG: Web context fetch failed with exception: {str(e)}")
                         logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets=0 ok=false")
                 else:
+                    logger.info(f"WEB_DEBUG: Tenant web grounding is DISABLED - skipping web context fetch")
                     logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model={web_config['model']} snippets=0 ok=true")
             else:
+                logger.info(f"WEB_DEBUG: Global web grounding is DISABLED - web_config={web_config}")
                 logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model=n/a snippets=0 ok=true")
             
             # Call MCP agent

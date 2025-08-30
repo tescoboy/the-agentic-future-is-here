@@ -24,6 +24,14 @@ services:
         sync: false
       - key: SKIP_REFERENCE_VALIDATION
         value: "true"
+      - key: ENABLE_WEB_CONTEXT
+        value: "1"
+      - key: WEB_CONTEXT_TIMEOUT_MS
+        value: "3000"
+      - key: WEB_CONTEXT_MAX_SNIPPETS
+        value: "3"
+      - key: GEMINI_MODEL
+        value: "gemini-2.5-flash"
     disk:
       name: data
       mountPath: ./data

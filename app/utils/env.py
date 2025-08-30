@@ -3,7 +3,10 @@ Environment variable utilities.
 """
 
 import os
+import logging
 from typing import Optional, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 
 def get_gemini_api_key() -> Optional[str]:
@@ -44,6 +47,13 @@ def get_web_grounding_config() -> Dict[str, Any]:
     Raises:
         ValueError: If configuration values are invalid
     """
+    # DEBUG: Log all environment variables related to web grounding
+    logger.info("WEB_DEBUG: Loading web grounding configuration from environment variables")
+    logger.info(f"WEB_DEBUG: ENABLE_WEB_CONTEXT raw value: '{os.environ.get('ENABLE_WEB_CONTEXT', 'NOT_SET')}'")
+    logger.info(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS raw value: '{os.environ.get('WEB_CONTEXT_TIMEOUT_MS', 'NOT_SET')}'")
+    logger.info(f"WEB_DEBUG: WEB_CONTEXT_MAX_SNIPPETS raw value: '{os.environ.get('WEB_CONTEXT_MAX_SNIPPETS', 'NOT_SET')}'")
+    logger.info(f"WEB_DEBUG: GEMINI_MODEL raw value: '{os.environ.get('GEMINI_MODEL', 'NOT_SET')}'")
+    
     # Read environment variables
     enabled_str = os.environ.get('ENABLE_WEB_CONTEXT', '0')
     timeout_ms_str = os.environ.get('WEB_CONTEXT_TIMEOUT_MS', '2000')
@@ -53,9 +63,12 @@ def get_web_grounding_config() -> Dict[str, Any]:
     # Validate and convert enabled flag
     if enabled_str.lower() in ('1', 'true', 'yes', 'on'):
         enabled = True
+        logger.info("WEB_DEBUG: ENABLE_WEB_CONTEXT parsed as ENABLED")
     elif enabled_str.lower() in ('0', 'false', 'no', 'off'):
         enabled = False
+        logger.info("WEB_DEBUG: ENABLE_WEB_CONTEXT parsed as DISABLED")
     else:
+        logger.error(f"WEB_DEBUG: ENABLE_WEB_CONTEXT has invalid value: '{enabled_str}'")
         raise ValueError("ENABLE_WEB_CONTEXT must be 0/1, true/false, yes/no, or on/off")
     
     # Validate and convert timeout
@@ -63,7 +76,9 @@ def get_web_grounding_config() -> Dict[str, Any]:
         timeout_ms = int(timeout_ms_str)
         if timeout_ms < 100 or timeout_ms > 10000:
             raise ValueError("WEB_CONTEXT_TIMEOUT_MS must be between 100 and 10000")
+        logger.info(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS parsed as: {timeout_ms}")
     except ValueError:
+        logger.error(f"WEB_DEBUG: WEB_CONTEXT_TIMEOUT_MS has invalid value: '{timeout_ms_str}'")
         raise ValueError("WEB_CONTEXT_TIMEOUT_MS must be a valid integer")
     
     # Validate and convert max snippets
@@ -71,7 +86,9 @@ def get_web_grounding_config() -> Dict[str, Any]:
         max_snippets = int(max_snippets_str)
         if max_snippets < 1 or max_snippets > 10:
             raise ValueError("WEB_CONTEXT_MAX_SNIPPETS must be between 1 and 10")
+        logger.info(f"WEB_DEBUG: WEB_CONTEXT_MAX_SNIPPETS parsed as: {max_snippets}")
     except ValueError:
+        logger.error(f"WEB_DEBUG: WEB_CONTEXT_MAX_SNIPPETS has invalid value: '{max_snippets_str}'")
         raise ValueError("WEB_CONTEXT_MAX_SNIPPETS must be a valid integer")
     
     # Determine provider based on model
@@ -80,10 +97,16 @@ def get_web_grounding_config() -> Dict[str, Any]:
     else:
         provider = "google_search"
     
-    return {
+    logger.info(f"WEB_DEBUG: GEMINI_MODEL parsed as: {model}")
+    logger.info(f"WEB_DEBUG: Provider determined as: {provider}")
+    
+    config = {
         "enabled": enabled,
         "timeout_ms": timeout_ms,
         "max_snippets": max_snippets,
         "model": model,
         "provider": provider
     }
+    
+    logger.info(f"WEB_DEBUG: Final web grounding config: {config}")
+    return config

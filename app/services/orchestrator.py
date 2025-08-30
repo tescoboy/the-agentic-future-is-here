@@ -37,7 +37,9 @@ async def orchestrate_brief(brief: str, tenant_ids: List[int], external_agents: 
     semaphore = asyncio.Semaphore(config["concurrency"])
     
     # Get web grounding configuration
+    logger.info("WEB_DEBUG: Orchestrator calling get_web_grounding_config()")
     web_config = get_web_grounding_config()
+    logger.info(f"WEB_DEBUG: Orchestrator received web_config: {web_config}")
     
     # Create sales tasks
     sales_tasks = []
@@ -49,6 +51,9 @@ async def orchestrate_brief(brief: str, tenant_ids: List[int], external_agents: 
             if not tenant:
                 logger.warning(f"Tenant {tenant_id} not found, skipping")
                 continue
+            
+            # DEBUG: Log tenant web context status
+            logger.info(f"WEB_DEBUG: Tenant {tenant.slug} (ID: {tenant.id}) enable_web_context: {getattr(tenant, 'enable_web_context', 'ATTRIBUTE_NOT_FOUND')}")
             
             # Use tenant's custom prompt if available, otherwise default
             tenant_prompt = tenant.custom_prompt if tenant.custom_prompt else None
