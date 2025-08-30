@@ -6,7 +6,7 @@ File: examples/upstream_quickstart.py (line 69)
 Method: get_products(brief: str, tenant_id: Optional[str] = None, **kwargs)
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from app.services._contract_utils import get_salesagent_commit
 
 # Method name from reference repository
