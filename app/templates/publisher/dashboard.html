@@ -91,14 +91,50 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="/publisher/{{ tenant.slug }}/ai-enrichment">
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="enable_web_context" name="enable_web_context" 
                                    {% if tenant.enable_web_context %}checked{% endif %}>
                             <label class="form-check-label" for="enable_web_context">
                                 Enable Web Context Grounding
                             </label>
                         </div>
-                        <div class="form-text">Adds fresh web context via Google Search (Gemini). May increase latency/cost.</div>
+                        <div class="form-text mb-3">Adds fresh web context via Google Search (Gemini). May increase latency/cost.</div>
+                        
+                        <!-- Web Grounding Prompt -->
+                        <div class="mb-3">
+                            <label for="web_grounding_prompt" class="form-label">Web Grounding Prompt</label>
+                            <textarea class="form-control" id="web_grounding_prompt" name="web_grounding_prompt" rows="4" 
+                                      placeholder="Enter custom web grounding prompt...">{{ tenant.web_grounding_prompt or '' }}</textarea>
+                            <div class="form-text">Customize how web search is performed. Use macros like {brief}, {tenant_name}.</div>
+                        </div>
+                        
+                        <!-- Available Macros -->
+                        <div class="mb-3">
+                            <label class="form-label">Available Macros:</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-2">
+                                            <small>
+                                                <strong>{brief}</strong> - The buyer's campaign brief<br>
+                                                <strong>{tenant_name}</strong> - Publisher name<br>
+                                                <strong>{tenant_slug}</strong> - Publisher slug
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-2">
+                                            <small>
+                                                <strong>{product_catalog}</strong> - Product catalog<br>
+                                                <strong>{web_grounding_results}</strong> - Web search results
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="mt-3">
                             <span class="badge bg-secondary">Global: {% if web_config.enabled %}ON{% else %}OFF{% endif %}</span>

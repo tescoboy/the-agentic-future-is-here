@@ -14,7 +14,7 @@ from app.utils.env import get_gemini_api_key
 logger = logging.getLogger(__name__)
 
 
-async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, model: str, provider: str) -> Dict[str, Any]:
+async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, model: str, provider: str, custom_prompt: Optional[str] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Fetch web context snippets using Gemini API.
     
@@ -50,8 +50,12 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
         # Create model instance with web search capability
         model_instance = genai.GenerativeModel(model)
         
-        # Create search prompt for web grounding - simplified
-        system_prompt = """Based on current digital advertising knowledge, provide 2-3 brief insights about media trends and audience behavior that could help with this campaign. Keep each insight under 200 characters."""
+        # Use custom prompt if provided, otherwise use default
+        if custom_prompt and context:
+            from app.utils.macro_processor import MacroProcessor
+            system_prompt = MacroProcessor.process_prompt(custom_prompt, context)
+        else:
+            system_prompt = """Based on current digital advertising knowledge, provide 2-3 brief insights about media trends and audience behavior that could help with this campaign. Keep each insight under 200 characters."""
         
         # Execute web search with timeout
         try:

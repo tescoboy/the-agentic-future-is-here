@@ -97,6 +97,7 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
             "name": tenant.name,
             "slug": tenant.slug,
             "custom_prompt": tenant.custom_prompt,
+            "web_grounding_prompt": tenant.web_grounding_prompt,
             "enable_web_context": tenant.enable_web_context,
             "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
             "products": []

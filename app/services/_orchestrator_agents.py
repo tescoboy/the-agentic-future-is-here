@@ -54,12 +54,21 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
                     logger.info(f"WEB_DEBUG: Tenant web grounding is ENABLED - proceeding with web context fetch")
                     try:
                         logger.info(f"WEB_DEBUG: Calling fetch_web_context with timeout={web_config['timeout_ms']}, max_snippets={web_config['max_snippets']}, model={web_config['model']}, provider={web_config['provider']}")
+                        # Prepare context for custom prompt
+                        context = {
+                            "brief": brief,
+                            "tenant_name": tenant.name,
+                            "tenant_slug": tenant.slug
+                        }
+                        
                         result = await fetch_web_context(
                             brief, 
                             web_config["timeout_ms"], 
                             web_config["max_snippets"],
                             web_config["model"],
-                            web_config["provider"]
+                            web_config["provider"],
+                            custom_prompt=getattr(tenant, 'web_grounding_prompt', None),
+                            context=context
                         )
                         web_snippets = result["snippets"]
                         logger.info(f"WEB_DEBUG: Web context fetch successful, got {len(web_snippets)} snippets")
@@ -81,7 +90,7 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
                 await client.open()
                 
                 # Add web snippets to sales params if available
-                sales_params = build_sales_params(brief, tenant_prompt, web_snippets)
+                sales_params = build_sales_params(brief, tenant_prompt, web_snippets, result if web_snippets else None)
                 
                 result = await client.call(SALES_METHOD, sales_params)
                 items = result.get("items", [])

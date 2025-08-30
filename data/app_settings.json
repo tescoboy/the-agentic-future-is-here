@@ -1,6 +1,6 @@
 {
-  "gemini_api_key": "test-key-for-now",
-  "embeddings_provider": "gemini",
+  "gemini_api_key": null,
+  "embeddings_provider": null,
   "embeddings_model": null,
   "emb_concurrency": null,
   "emb_batch_size": null,

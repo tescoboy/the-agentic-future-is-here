@@ -12,6 +12,7 @@ class Tenant(SQLModel, table=True):
     name: str = Field(max_length=255)
     slug: str = Field(max_length=255, unique=True, index=True)
     custom_prompt: Optional[str] = Field(default=None)
+    web_grounding_prompt: Optional[str] = Field(default=None)
     enable_web_context: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     

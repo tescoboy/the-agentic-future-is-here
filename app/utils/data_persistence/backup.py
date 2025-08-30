@@ -5,7 +5,7 @@ Backup and restore functions for data persistence.
 import logging
 import os
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from .export import export_all_data
 from .import_utils import import_all_data
@@ -55,14 +55,30 @@ def auto_backup_on_startup(session: Session) -> None:
 
 
 def auto_restore_on_startup(session: Session) -> None:
-    """Automatically restore from latest backup on startup."""
+    """Automatically restore from latest backup on startup if database is empty."""
     try:
+        # Check if database is empty
+        from app.models import Tenant, Product, ExternalAgent
+        from sqlmodel import select
+        
+        tenant_count = len(session.exec(select(Tenant)).all())
+        product_count = len(session.exec(select(Product)).all())
+        agent_count = len(session.exec(select(ExternalAgent)).all())
+        
+        total_records = tenant_count + product_count + agent_count
+        
+        if total_records > 0:
+            logger.info(f"Database not empty ({total_records} records), skipping auto-restore")
+            return
+        
+        # Database is empty, check for backup files
         backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
         if backup_files:
             latest_backup = max(backup_files, key=os.path.getctime)
+            logger.info(f"Database is empty, auto-restoring from: {latest_backup.name}")
             import_all_data(session, backup_file=str(latest_backup))
-            logger.info(f"Auto-restored from: {latest_backup.name}")
+            logger.info(f"Auto-restore completed successfully from: {latest_backup.name}")
         else:
-            logger.info("No backup files found for auto-restore")
+            logger.info("Database is empty but no backup files found for auto-restore")
     except Exception as e:
         logger.warning(f"Auto-restore failed: {e}")

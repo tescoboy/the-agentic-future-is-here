@@ -57,6 +57,7 @@ def update_ai_enrichment_settings(
     request: Request, 
     tenant_slug: str, 
     enable_web_context: bool = Form(False),
+    web_grounding_prompt: str = Form(None),
     session: Session = Depends(get_session)
 ):
     """Update AI enrichment settings for a tenant."""
@@ -65,6 +66,12 @@ def update_ai_enrichment_settings(
     try:
         # Update tenant with new web context setting
         update_tenant_web_context(session, tenant.id, enable_web_context)
+        
+        # Update web grounding prompt
+        if web_grounding_prompt is not None:
+            tenant.web_grounding_prompt = web_grounding_prompt.strip() if web_grounding_prompt.strip() else None
+            session.add(tenant)
+            session.commit()
         
         # Redirect back to dashboard with success message
         response = RedirectResponse(url=f"/publisher/{tenant_slug}/", status_code=302)

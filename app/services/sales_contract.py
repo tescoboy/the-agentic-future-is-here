@@ -53,7 +53,7 @@ Focus on:
 Return ONLY the JSON response, no additional text."""
 
 
-def build_sales_params(brief: str, tenant_prompt: Optional[str] = None, web_snippets: Optional[List[str]] = None) -> dict:
+def build_sales_params(brief: str, tenant_prompt: Optional[str] = None, web_snippets: Optional[List[str]] = None, web_grounding_results: Optional[Dict[str, Any]] = None) -> dict:
     """
     Build parameters for sales agent request.
     
@@ -73,6 +73,14 @@ def build_sales_params(brief: str, tenant_prompt: Optional[str] = None, web_snip
     
     # Select prompt: tenant override or default
     prompt = tenant_prompt or get_default_sales_prompt()
+    
+    # Process prompt with macros if web grounding results are available
+    if web_grounding_results and "{web_grounding_results}" in prompt:
+        from app.utils.macro_processor import MacroProcessor
+        context = {
+            "web_grounding_results": web_grounding_results
+        }
+        prompt = MacroProcessor.process_prompt(prompt, context)
     
     # Build base parameters
     params = {
