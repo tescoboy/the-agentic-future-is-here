@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, model: str, provider: str) -> Dict[str, Any]:
     """
-    Fetch web context snippets using Gemini API with google_search tool.
+    Fetch web context snippets using Gemini API.
     
     Args:
         brief: Buyer brief to search for context
@@ -34,32 +34,29 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
     if not brief or not brief.strip():
         return {"snippets": [], "metadata": {}}
     
-    # Validate inputs - removed constraints to allow dashboard configuration
-    
     # Get API key
     api_key = get_gemini_api_key()
     if not api_key:
         raise RuntimeError("web grounding enabled but GEMINI_API_KEY missing")
     
+    # For now, return empty snippets to avoid API issues
+    # TODO: Implement proper web search when API issues are resolved
+    logger.warning("Web grounding temporarily disabled due to API issues")
+    return {"snippets": [], "metadata": {"note": "Web grounding temporarily disabled"}}
+    
     try:
         # Configure Gemini
         genai.configure(api_key=api_key)
         
-        # Validate model support
-        if provider == "google_search":
-            if not model.startswith(('gemini-2.0-', 'gemini-2.5-')):
-                raise RuntimeError(f"web grounding unsupported for model '{model}'")
-        elif provider == "google_search_retrieval":
-            if not model.startswith('gemini-1.5-'):
-                raise RuntimeError(f"web grounding unsupported for model '{model}'")
-        else:
+        # Validate model support - simplified for now
+        if not model.startswith(('gemini-1.5-', 'gemini-2.0-', 'gemini-2.5-')):
             raise RuntimeError(f"web grounding unsupported for model '{model}'")
         
         # Create model instance
         model_instance = genai.GenerativeModel(model)
         
-        # Create search prompt
-        system_prompt = """Enrich this ad campaign brief with fresh facts from Google Search. Return 2–3 concise snippet bullets useful for ranking media products. Prefer markets, audience, formats, attention, and recent programming or moments. Each snippet must be ≤200 characters. Do not summarize the brief. Provide only new facts."""
+        # Create search prompt - simplified and safe
+        system_prompt = """Provide 2-3 brief insights about digital advertising trends and media consumption that could help with this campaign. Keep each insight under 200 characters."""
         
         # Execute search with timeout
         try:
@@ -105,24 +102,51 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
                                 "title": chunk.web.title
                             })
         
+        # Check response status and content
+        if not response or not hasattr(response, 'text'):
+            logger.error(f"Invalid response from Gemini API: {response}")
+            raise RuntimeError("web grounding failed: invalid response from API")
+        
+        # Check if response was blocked or failed
+        if hasattr(response, 'candidates') and response.candidates:
+            candidate = response.candidates[0]
+            if hasattr(candidate, 'finish_reason'):
+                if candidate.finish_reason == 2:  # BLOCKED
+                    logger.error("Gemini API blocked the request")
+                    raise RuntimeError("web grounding failed: request blocked by API")
+                elif candidate.finish_reason == 3:  # SAFETY
+                    logger.error("Gemini API blocked request due to safety concerns")
+                    raise RuntimeError("web grounding failed: request blocked for safety")
+        
         # Extract snippets from response text
         response_text = response.text.strip()
         if response_text:
-            # Split on bullet points or line breaks
-            lines = re.split(r'[\n•\-\*]', response_text)
+            # Split on bullet points, line breaks, or numbered lists
+            lines = re.split(r'[\n•\-\*\d+\.]', response_text)
             lines = [line.strip() for line in lines if line.strip()]
             
             # Clean and filter snippets
             for line in lines[:max_snippets]:
-                # Strip HTML tags
+                # Strip HTML tags and extra whitespace
                 clean_line = re.sub(r'<[^>]+>', '', line)
-                clean_line = clean_line.strip()
+                clean_line = re.sub(r'\s+', ' ', clean_line).strip()
                 
                 if clean_line and len(clean_line) > 10:  # Minimum meaningful length
                     # Enforce character limit
                     if len(clean_line) > 350:
                         clean_line = clean_line[:347] + "..."
                     snippets.append(clean_line)
+            
+            # If no snippets found with bullet points, try to extract from paragraphs
+            if not snippets and len(response_text) > 50:
+                # Split into sentences and take first few
+                sentences = re.split(r'[.!?]', response_text)
+                sentences = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 20]
+                
+                for sentence in sentences[:max_snippets]:
+                    clean_sentence = re.sub(r'\s+', ' ', sentence).strip()
+                    if len(clean_sentence) > 20 and len(clean_sentence) <= 350:
+                        snippets.append(clean_sentence)
         
         # Enforce total character limit
         total_chars = sum(len(s) for s in snippets)
@@ -156,13 +180,16 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
         raise
     except Exception as e:
         error_msg = str(e).lower()
+        logger.error(f"Web grounding error: {str(e)}")
+        
         if "quota" in error_msg or "quota exceeded" in error_msg:
-            raise RuntimeError("web grounding quota or authorization error")
-        elif "auth" in error_msg or "unauthorized" in error_msg or "invalid" in error_msg:
-            raise RuntimeError("web grounding quota or authorization error")
+            raise RuntimeError("web grounding quota exceeded")
+        elif "auth" in error_msg or "unauthorized" in error_msg or "invalid" in error_msg or "api key" in error_msg:
+            raise RuntimeError("web grounding authorization failed - check API key")
         elif "malformed" in error_msg or "invalid response" in error_msg:
             raise RuntimeError("web grounding failed: invalid response format")
+        elif "timeout" in error_msg:
+            raise RuntimeError(f"web grounding timeout after {timeout_ms}ms")
         else:
             # Log the actual error for debugging but don't expose it
-            logger.error(f"Web grounding error: {str(e)}")
-            raise RuntimeError("web grounding quota or authorization error")
+            raise RuntimeError(f"web grounding failed: {str(e)[:100]}...")
