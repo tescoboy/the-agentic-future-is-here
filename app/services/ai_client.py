@@ -83,6 +83,12 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
             "web_grounding_results": web_grounding_results
         }
         prompt = MacroProcessor.process_prompt(prompt, context)
+        logger.info(f"AI_DEBUG: Prompt processed with web grounding results")
+        logger.info(f"AI_DEBUG: Web grounding results structure: {list(web_grounding_results.keys())}")
+        if "product_snippets" in web_grounding_results:
+            logger.info(f"AI_DEBUG: Number of product snippets: {len(web_grounding_results['product_snippets'])}")
+    else:
+        logger.info(f"AI_DEBUG: No web grounding results or macro not found in prompt")
     
     # Build context section with web snippets if available
     context_section = ""
