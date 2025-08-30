@@ -188,6 +188,11 @@ def get_timeout_ms(timeout: int = None) -> int:
     env_timeout = os.getenv('ORCH_TIMEOUT_MS_DEFAULT', '25000')
     final_timeout = timeout or int(env_timeout)
     
+    # TEMPORARY FIX: Hardcode to 5 minutes while debugging env var issue
+    if final_timeout == 25000:
+        final_timeout = 300000  # 5 minutes
+        logger.warning(f"TIMEOUT_DEBUG: Using hardcoded 5-minute timeout due to env var issue")
+    
     logger.info(f"TIMEOUT_DEBUG: ORCH_TIMEOUT_MS_DEFAULT env value: {env_timeout}")
     logger.info(f"TIMEOUT_DEBUG: Final timeout value: {final_timeout}ms")
     
