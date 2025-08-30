@@ -127,8 +127,12 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                 raise MCPRPCError(-32602, "web_snippets must be a list of strings")
     
     try:
-        # Step 1: RAG pre-filter to get candidate products
-        rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip())
+        # Step 1: RAG pre-filter to get candidate products (limit to 15 for web grounding efficiency)
+        rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip(), limit=15)
+        
+        logger.info(f"RAG_DEBUG: RAG pre-filter returned {len(rag_candidates)} candidates")
+        if rag_candidates:
+            logger.info(f"RAG_DEBUG: Top 5 RAG candidates: {[c.get('product_id', 'N/A') for c in rag_candidates[:5]]}")
         
         if not rag_candidates:
             # No candidates found, return empty results
@@ -137,16 +141,17 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         
         # Step 2: Get full product objects for AI ranking
         candidate_product_ids = [c['product_id'] for c in rag_candidates]
+        logger.info(f"RAG_DEBUG: Looking for {len(candidate_product_ids)} product IDs in database")
+        
         # Get all products for the tenant (no limit) to ensure we find all candidates
         products, _ = list_products(db_session, tenant_id=tenant.id, limit=1000)
         
         # Filter products to only include RAG candidates
         candidate_products = [p for p in products if p.id in candidate_product_ids]
+        logger.info(f"RAG_DEBUG: Found {len(candidate_products)} products matching RAG candidates")
         
-        # Limit to top 50 products to prevent timeout and high token usage
-        if len(candidate_products) > 50:
-            logger.info(f"Limiting RAG candidates from {len(candidate_products)} to top 50 products to prevent timeout")
-            candidate_products = candidate_products[:50]
+        # RAG pre-filter already limited to 15, so no need for additional limiting
+        logger.info(f"RAG_DEBUG: Using all {len(candidate_products)} RAG-filtered products for web grounding")
         
         if not candidate_products:
             # No products found for candidates, return empty results
