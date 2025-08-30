@@ -16,6 +16,7 @@ class MacroProcessor:
         "{brief}": "The buyer's campaign brief",
         "{product_catalog}": "The publisher's product catalog",
         "{web_grounding_results}": "Results from web grounding search",
+        "{product_snippets}": "Individual product web grounding snippets",
         "{tenant_name}": "The publisher's name",
         "{tenant_slug}": "The publisher's slug"
     }
@@ -56,6 +57,15 @@ class MacroProcessor:
             grounding_text = cls._format_web_grounding_results(context["web_grounding_results"])
             result = result.replace("{web_grounding_results}", grounding_text)
         
+        # Replace {product_snippets} macro
+        if "{product_snippets}" in result and "web_grounding_results" in context:
+            product_snippets = context["web_grounding_results"].get("product_snippets", {})
+            if product_snippets:
+                snippets_text = "\n".join([f"Product {pid}: {snippet}" for pid, snippet in product_snippets.items()])
+                result = result.replace("{product_snippets}", snippets_text)
+            else:
+                result = result.replace("{product_snippets}", "No product-specific snippets available")
+        
         # Replace {tenant_name} macro
         if "{tenant_name}" in result and "tenant_name" in context:
             result = result.replace("{tenant_name}", str(context["tenant_name"]))
@@ -90,14 +100,23 @@ class MacroProcessor:
             return "No web grounding results available."
         
         snippets = results.get("snippets", [])
+        product_snippets = results.get("product_snippets", {})
+        
         if not snippets:
             return "No web grounding insights found."
         
-        formatted_snippets = []
-        for i, snippet in enumerate(snippets, 1):
-            formatted_snippets.append(f"{i}. {snippet}")
-        
-        return "\n".join(formatted_snippets)
+        # Check if this is per-product grounding
+        if results.get("metadata", {}).get("per_product") and product_snippets:
+            formatted_snippets = []
+            for product_id, snippet in product_snippets.items():
+                formatted_snippets.append(f"Product {product_id}: {snippet}")
+            return "\n".join(formatted_snippets)
+        else:
+            # Legacy format - numbered snippets
+            formatted_snippets = []
+            for i, snippet in enumerate(snippets, 1):
+                formatted_snippets.append(f"{i}. {snippet}")
+            return "\n".join(formatted_snippets)
     
     @classmethod
     def validate_prompt(cls, prompt: str) -> Dict[str, Any]:

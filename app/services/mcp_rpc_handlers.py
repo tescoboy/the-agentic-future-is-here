@@ -148,7 +148,7 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
             logger.warning(f"No products found for RAG candidates: {candidate_product_ids}")
             return {"items": []}
         
-        # Step 3: Web grounding (if enabled) - now with access to RAG-filtered products
+        # Step 3: Web grounding per product (if enabled) - now with access to RAG-filtered products
         web_snippets = None
         web_grounding_results = None
         
@@ -159,46 +159,62 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                 
                 web_config = get_web_grounding_config()
                 if web_config and web_config.get("enabled", False):
-                    logger.info(f"WEB_DEBUG: Performing web grounding for tenant {tenant.slug} with {len(candidate_products)} RAG-filtered products")
+                    logger.info(f"WEB_DEBUG: Performing web grounding per product for tenant {tenant.slug} with {len(candidate_products)} RAG-filtered products")
                     
-                    # Prepare context with RAG-filtered products
-                    context = {
-                        "brief": brief,
-                        "tenant_name": tenant.name,
-                        "tenant_slug": tenant.slug,
-                        "product_catalog": [
-                            {
-                                "name": p.name,
-                                "description": p.description,
-                                "price_cpm": p.price_cpm,
-                                "delivery_type": p.delivery_type
-                            } for p in candidate_products
-                        ]
+                    # Generate web grounding snippets per product
+                    all_snippets = []
+                    product_snippets = {}
+                    
+                    for product in candidate_products:
+                        # Prepare context for this specific product
+                        context = {
+                            "brief": brief,
+                            "tenant_name": tenant.name,
+                            "tenant_slug": tenant.slug,
+                            "product_catalog": [
+                                {
+                                    "name": product.name,
+                                    "description": product.description,
+                                    "price_cpm": product.price_cpm,
+                                    "delivery_type": product.delivery_type
+                                }
+                            ]
+                        }
+                        
+                        try:
+                            # Get web grounding for this specific product
+                            result = await fetch_web_context(
+                                brief, 
+                                web_config["timeout_ms"], 
+                                1,  # 1 snippet per product
+                                web_config["model"],
+                                web_config["provider"],
+                                custom_prompt=getattr(tenant, 'web_grounding_prompt', None),
+                                context=context
+                            )
+                            
+                            if result["snippets"]:
+                                snippet = result["snippets"][0]  # Take the first snippet
+                                all_snippets.append(snippet)
+                                product_snippets[product.id] = snippet
+                                logger.info(f"WEB_DEBUG: Product {product.name} snippet: {snippet[:100]}...")
+                            else:
+                                logger.info(f"WEB_DEBUG: No snippet generated for product {product.name}")
+                                
+                        except Exception as e:
+                            logger.warning(f"WEB_DEBUG: Web grounding failed for product {product.name}: {str(e)}")
+                    
+                    web_snippets = all_snippets
+                    web_grounding_results = {
+                        "snippets": all_snippets,
+                        "product_snippets": product_snippets,
+                        "metadata": {"per_product": True}
                     }
                     
-                    result = await fetch_web_context(
-                        brief, 
-                        web_config["timeout_ms"], 
-                        web_config["max_snippets"],
-                        web_config["model"],
-                        web_config["provider"],
-                        custom_prompt=getattr(tenant, 'web_grounding_prompt', None),
-                        context=context
-                    )
-                    web_snippets = result["snippets"]
-                    web_grounding_results = result
-                    logger.info(f"WEB_DEBUG: Web grounding successful, got {len(web_snippets)} snippets")
-                    
-                    # Log the actual snippets for debugging
-                    for i, snippet in enumerate(web_snippets, 1):
-                        logger.info(f"WEB_DEBUG: Snippet {i}: {snippet}")
-                    
-                    # Log metadata if available
-                    if result.get("metadata"):
-                        logger.info(f"WEB_DEBUG: Web grounding metadata: {result['metadata']}")
+                    logger.info(f"WEB_DEBUG: Web grounding per product successful, got {len(web_snippets)} snippets for {len(product_snippets)} products")
                     
             except Exception as e:
-                logger.warning(f"WEB_DEBUG: Web grounding failed for tenant {tenant.slug}: {str(e)}")
+                logger.warning(f"WEB_DEBUG: Web grounding per product failed for tenant {tenant.slug}: {str(e)}")
                 web_snippets = None
                 web_grounding_results = None
         
