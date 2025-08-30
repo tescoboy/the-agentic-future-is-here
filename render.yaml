@@ -32,7 +32,7 @@ services:
       - key: WEB_CONTEXT_MAX_SNIPPETS
         value: "3"
       - key: GEMINI_MODEL
-        value: "gemini-2.5-flash"
+        value: "gemini-1.5-pro"
     disk:
       name: data
       mountPath: ./data

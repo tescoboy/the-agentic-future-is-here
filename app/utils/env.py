@@ -58,7 +58,7 @@ def get_web_grounding_config() -> Dict[str, Any]:
     enabled_str = os.environ.get('ENABLE_WEB_CONTEXT', '0')
     timeout_ms_str = os.environ.get('WEB_CONTEXT_TIMEOUT_MS', '2000')
     max_snippets_str = os.environ.get('WEB_CONTEXT_MAX_SNIPPETS', '3')
-    model = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+    model = os.environ.get('GEMINI_MODEL', 'gemini-1.5-pro')
     
     # Validate and convert enabled flag
     if enabled_str.lower() in ('1', 'true', 'yes', 'on'):
@@ -90,8 +90,10 @@ def get_web_grounding_config() -> Dict[str, Any]:
     # Determine provider based on model
     if model.startswith('gemini-1.5-'):
         provider = "google_search_retrieval"
-    else:
+    elif model.startswith('gemini-2.0-') or model.startswith('gemini-2.5-'):
         provider = "google_search"
+    else:
+        provider = "google_search_retrieval"  # Default to retrieval for newer models
     
     logger.info(f"WEB_DEBUG: GEMINI_MODEL parsed as: {model}")
     logger.info(f"WEB_DEBUG: Provider determined as: {provider}")
