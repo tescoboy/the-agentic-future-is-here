@@ -143,10 +143,10 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         # Filter products to only include RAG candidates
         candidate_products = [p for p in products if p.id in candidate_product_ids]
         
-        # Limit to top 15 products to prevent timeout and high token usage
-        if len(candidate_products) > 15:
-            logger.info(f"Limiting RAG candidates from {len(candidate_products)} to top 15 products to prevent timeout")
-            candidate_products = candidate_products[:15]
+        # Limit to top 50 products to prevent timeout and high token usage
+        if len(candidate_products) > 50:
+            logger.info(f"Limiting RAG candidates from {len(candidate_products)} to top 50 products to prevent timeout")
+            candidate_products = candidate_products[:50]
         
         if not candidate_products:
             # No products found for candidates, return empty results
