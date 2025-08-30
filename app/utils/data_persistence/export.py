@@ -7,7 +7,7 @@ import logging
 import os
 from datetime import datetime
 from typing import Dict, List, Any
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 
 from app.models import Tenant, Product, ExternalAgent
 from app.repos.tenants import get_tenant_by_slug
@@ -46,17 +46,19 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
     """Export all tenants and their products."""
     tenants_data = []
     
-    # Get all tenants
-    tenants = session.query(Tenant).all()
+    # Get all tenants using SQLModel
+    tenants = session.exec(select(Tenant)).all()
     
     for tenant in tenants:
-        # Get products for this tenant
-        products, _ = list_products(session, tenant_id=tenant.id)
+        # Get products for this tenant using SQLModel
+        products = session.exec(select(Product).where(Product.tenant_id == tenant.id)).all()
         
         tenant_data = {
             "id": tenant.id,
             "name": tenant.name,
             "slug": tenant.slug,
+            "custom_prompt": tenant.custom_prompt,
+            "enable_web_context": tenant.enable_web_context,
             "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
             "products": []
         }
@@ -64,6 +66,7 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
         for product in products:
             product_data = {
                 "id": product.id,
+                "tenant_id": product.tenant_id,
                 "name": product.name,
                 "description": product.description,
                 "price_cpm": product.price_cpm,
@@ -82,16 +85,18 @@ def export_tenants(session: Session) -> List[Dict[str, Any]]:
 
 def export_external_agents(session: Session) -> List[Dict[str, Any]]:
     """Export all external agents."""
-    agents = list_external_agents(session)
+    # Get all external agents using SQLModel
+    agents = session.exec(select(ExternalAgent)).all()
     
     agents_data = []
     for agent in agents:
         agent_data = {
             "id": agent.id,
             "name": agent.name,
-            "endpoint_url": agent.endpoint_url,
-            "api_key": agent.api_key,
-            "is_active": agent.is_active,
+            "base_url": agent.base_url,
+            "enabled": agent.enabled,
+            "agent_type": agent.agent_type,
+            "protocol": agent.protocol,
             "created_at": agent.created_at.isoformat() if agent.created_at else None
         }
         agents_data.append(agent_data)
