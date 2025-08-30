@@ -123,3 +123,13 @@ catalog_final.csv
 filtering_test_results.json
 test_results_*.json
 debug_*.json
+
+# CSV backup files
+backup_csv_*.zip
+*_backup_csv_*.zip
+data/backups/backup_csv_*.zip
+data/backups/*.zip
+
+# Large data files
+catalog_final_hg.csv
+catalog_final.csv
