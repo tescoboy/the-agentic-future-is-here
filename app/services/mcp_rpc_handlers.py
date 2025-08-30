@@ -189,6 +189,14 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                     web_grounding_results = result
                     logger.info(f"WEB_DEBUG: Web grounding successful, got {len(web_snippets)} snippets")
                     
+                    # Log the actual snippets for debugging
+                    for i, snippet in enumerate(web_snippets, 1):
+                        logger.info(f"WEB_DEBUG: Snippet {i}: {snippet}")
+                    
+                    # Log metadata if available
+                    if result.get("metadata"):
+                        logger.info(f"WEB_DEBUG: Web grounding metadata: {result['metadata']}")
+                    
             except Exception as e:
                 logger.warning(f"WEB_DEBUG: Web grounding failed for tenant {tenant.slug}: {str(e)}")
                 web_snippets = None

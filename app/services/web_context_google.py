@@ -138,6 +138,8 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
         
         # Extract snippets from response text
         response_text = response.text.strip()
+        logger.info(f"WEB_DEBUG: Raw response text: {response_text[:200]}...")
+        
         if response_text:
             # Split on bullet points, line breaks, or numbered lists
             lines = re.split(r'[\n•\-\*\d+\.]', response_text)
