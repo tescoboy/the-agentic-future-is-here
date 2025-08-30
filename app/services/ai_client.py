@@ -13,7 +13,7 @@ from app.models import Product
 from app.services.sales_contract import get_default_sales_prompt
 
 
-async def rank_products_with_ai(brief: str, products: List[Product], prompt: str, web_snippets: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+async def rank_products_with_ai(brief: str, products: List[Product], prompt: str, web_snippets: Optional[List[str]] = None, web_grounding_results: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """
     Rank products using Gemini AI.
     
@@ -75,6 +75,14 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
                 product_info["targeting"] = {}
         
         products_data.append(product_info)
+    
+    # Process prompt with macros if web grounding results are available
+    if web_grounding_results and "{web_grounding_results}" in prompt:
+        from app.utils.macro_processor import MacroProcessor
+        context = {
+            "web_grounding_results": web_grounding_results
+        }
+        prompt = MacroProcessor.process_prompt(prompt, context)
     
     # Build context section with web snippets if available
     context_section = ""

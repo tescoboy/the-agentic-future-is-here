@@ -148,13 +148,59 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
             logger.warning(f"No products found for RAG candidates: {candidate_product_ids}")
             return {"items": []}
         
-        # Step 3: Resolve prompt: tenant custom prompt or default
+        # Step 3: Web grounding (if enabled) - now with access to RAG-filtered products
+        web_snippets = None
+        web_grounding_results = None
+        
+        if hasattr(tenant, 'enable_web_context') and tenant.enable_web_context:
+            try:
+                from app.utils.env import get_web_grounding_config
+                from app.services.web_context_google import fetch_web_context
+                
+                web_config = get_web_grounding_config()
+                if web_config and web_config.get("enabled", False):
+                    logger.info(f"WEB_DEBUG: Performing web grounding for tenant {tenant.slug} with {len(candidate_products)} RAG-filtered products")
+                    
+                    # Prepare context with RAG-filtered products
+                    context = {
+                        "brief": brief,
+                        "tenant_name": tenant.name,
+                        "tenant_slug": tenant.slug,
+                        "product_catalog": [
+                            {
+                                "name": p.name,
+                                "description": p.description,
+                                "price_cpm": p.price_cpm,
+                                "delivery_type": p.delivery_type
+                            } for p in candidate_products
+                        ]
+                    }
+                    
+                    result = await fetch_web_context(
+                        brief, 
+                        web_config["timeout_ms"], 
+                        web_config["max_snippets"],
+                        web_config["model"],
+                        web_config["provider"],
+                        custom_prompt=getattr(tenant, 'web_grounding_prompt', None),
+                        context=context
+                    )
+                    web_snippets = result["snippets"]
+                    web_grounding_results = result
+                    logger.info(f"WEB_DEBUG: Web grounding successful, got {len(web_snippets)} snippets")
+                    
+            except Exception as e:
+                logger.warning(f"WEB_DEBUG: Web grounding failed for tenant {tenant.slug}: {str(e)}")
+                web_snippets = None
+                web_grounding_results = None
+        
+        # Step 4: Resolve prompt: tenant custom prompt or default
         prompt = tenant.custom_prompt if tenant.custom_prompt else get_default_sales_prompt()
         prompt_source = "custom" if tenant.custom_prompt else "default"
         
-        # Step 4: Call AI ranking on filtered candidates
+        # Step 5: Call AI ranking on filtered candidates with web grounding results
         try:
-            ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt, web_snippets)
+            ranked_items = await rank_products_with_ai(brief.strip(), candidate_products, prompt, web_snippets, web_grounding_results)
             
             # Log prompt source (not content)
             logger.info(f"AI ranking completed: prompt_source={prompt_source}, items={len(ranked_items)}")

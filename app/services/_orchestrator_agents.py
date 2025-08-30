@@ -35,72 +35,20 @@ async def call_sales_agent(tenant: Any, brief: str, semaphore: asyncio.Semaphore
                     "error": "circuit breaker open"
                 }
             
-            # Handle web grounding if enabled
-            web_snippets = None
-            web_grounding_ok = True
-            
-            # DEBUG: Log web grounding configuration and tenant status
-            logger.info(f"WEB_DEBUG: Starting web grounding check for tenant={tenant.slug}")
-            logger.info(f"WEB_DEBUG: web_config received: {web_config}")
-            logger.info(f"WEB_DEBUG: tenant.enable_web_context attribute exists: {hasattr(tenant, 'enable_web_context')}")
-            if hasattr(tenant, 'enable_web_context'):
-                logger.info(f"WEB_DEBUG: tenant.enable_web_context value: {tenant.enable_web_context}")
-                logger.info(f"WEB_DEBUG: tenant.enable_web_context type: {type(tenant.enable_web_context)}")
-            
-            if web_config and web_config.get("enabled", False):
-                logger.info(f"WEB_DEBUG: Global web grounding is ENABLED")
-                # Check if tenant has web context enabled
-                if hasattr(tenant, 'enable_web_context') and tenant.enable_web_context:
-                    logger.info(f"WEB_DEBUG: Tenant web grounding is ENABLED - proceeding with web context fetch")
-                    try:
-                        logger.info(f"WEB_DEBUG: Calling fetch_web_context with timeout={web_config['timeout_ms']}, max_snippets={web_config['max_snippets']}, model={web_config['model']}, provider={web_config['provider']}")
-                        # Prepare context for custom prompt
-                        context = {
-                            "brief": brief,
-                            "tenant_name": tenant.name,
-                            "tenant_slug": tenant.slug
-                        }
-                        
-                        result = await fetch_web_context(
-                            brief, 
-                            web_config["timeout_ms"], 
-                            web_config["max_snippets"],
-                            web_config["model"],
-                            web_config["provider"],
-                            custom_prompt=getattr(tenant, 'web_grounding_prompt', None),
-                            context=context
-                        )
-                        web_snippets = result["snippets"]
-                        logger.info(f"WEB_DEBUG: Web context fetch successful, got {len(web_snippets)} snippets")
-                        logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets={len(web_snippets)} ok=true")
-                    except Exception as e:
-                        web_grounding_ok = False
-                        logger.error(f"WEB_DEBUG: Web context fetch failed with exception: {str(e)}")
-                        logger.info(f"web_grounding tenant={tenant.slug} enabled=1 model={web_config['model']} snippets=0 ok=false")
-                else:
-                    logger.info(f"WEB_DEBUG: Tenant web grounding is DISABLED - skipping web context fetch")
-                    logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model={web_config['model']} snippets=0 ok=true")
-            else:
-                logger.info(f"WEB_DEBUG: Global web grounding is DISABLED - web_config={web_config}")
-                logger.info(f"web_grounding tenant={tenant.slug} enabled=0 model=n/a snippets=0 ok=true")
+            # Web grounding is now handled in the MCP RPC handler after RAG filtering
+            # This ensures web grounding only includes RAG-filtered products
+            logger.info(f"WEB_DEBUG: Web grounding will be handled in MCP RPC handler for tenant={tenant.slug}")
             
             # Call MCP agent
             client = MCPClient(base_url, timeout=config["timeout_ms"])
             try:
                 await client.open()
                 
-                # Add web snippets to sales params if available
-                sales_params = build_sales_params(brief, tenant_prompt, web_snippets, result if web_snippets else None)
+                # Build sales params (web grounding is now handled in MCP RPC handler)
+                sales_params = build_sales_params(brief, tenant_prompt)
                 
                 result = await client.call(SALES_METHOD, sales_params)
                 items = result.get("items", [])
-                
-                # Add web context error to items if grounding failed
-                if not web_grounding_ok:
-                    for item in items:
-                        if "errors" not in item:
-                            item["errors"] = []
-                        item["errors"].append("web_context_unavailable")
                 
                 reset_circuit_breaker(base_url)
                 logger.info(f"agent={tenant.name} type=sales protocol=mcp ok=true keys=items={len(items)} prompt_source={prompt_source}")
