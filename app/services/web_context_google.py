@@ -34,11 +34,7 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
     if not brief or not brief.strip():
         return {"snippets": [], "metadata": {}}
     
-    # Validate inputs
-    if timeout_ms < 100 or timeout_ms > 10000:
-        raise ValueError("timeout_ms must be between 100 and 10000")
-    if max_snippets < 1 or max_snippets > 10:
-        raise ValueError("max_snippets must be between 1 and 10")
+    # Validate inputs - removed constraints to allow dashboard configuration
     
     # Get API key
     api_key = get_gemini_api_key()
