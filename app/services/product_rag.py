@@ -14,7 +14,12 @@ from app.models import Product
 from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 
-logger = logging.getLogger(__name__)
+# Ensure logger is always available with fallback
+try:
+    logger = logging.getLogger(__name__)
+except Exception as e:
+    print(f"WARNING: Failed to get logger: {e}")
+    logger = logging.getLogger("product_rag")
 
 # Default constants copied from signals-agent
 DEFAULT_TOP_K = 50
