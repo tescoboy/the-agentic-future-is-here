@@ -182,7 +182,16 @@ def validate_base_url(base_url: str) -> None:
 def get_timeout_ms(timeout: int = None) -> int:
     """Get timeout in milliseconds from env or default."""
     import os
-    return timeout or int(os.getenv('ORCH_TIMEOUT_MS_DEFAULT', '25000'))
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    env_timeout = os.getenv('ORCH_TIMEOUT_MS_DEFAULT', '25000')
+    final_timeout = timeout or int(env_timeout)
+    
+    logger.info(f"TIMEOUT_DEBUG: ORCH_TIMEOUT_MS_DEFAULT env value: {env_timeout}")
+    logger.info(f"TIMEOUT_DEBUG: Final timeout value: {final_timeout}ms")
+    
+    return final_timeout
 
 
 def reset_client_state(client):
