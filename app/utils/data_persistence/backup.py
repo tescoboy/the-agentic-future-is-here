@@ -58,6 +58,13 @@ def auto_backup_on_startup(session: Session) -> None:
         
         total_records = tenant_count + product_count + agent_count
         
+        # Debug: Log detailed database state
+        logger.info(f"BACKUP_DEBUG: Database state check:")
+        logger.info(f"BACKUP_DEBUG:   - Tenants: {tenant_count}")
+        logger.info(f"BACKUP_DEBUG:   - Products: {product_count}")
+        logger.info(f"BACKUP_DEBUG:   - External Agents: {agent_count}")
+        logger.info(f"BACKUP_DEBUG:   - Total Records: {total_records}")
+        
         if total_records > 0:
             export_all_data(session)
             logger.info("Auto-backup created on startup")
@@ -80,12 +87,25 @@ def auto_restore_on_startup(session: Session) -> None:
         
         total_records = tenant_count + product_count + agent_count
         
+        # Debug: Log detailed database state
+        logger.info(f"RESTORE_DEBUG: Database state check:")
+        logger.info(f"RESTORE_DEBUG:   - Tenants: {tenant_count}")
+        logger.info(f"RESTORE_DEBUG:   - Products: {product_count}")
+        logger.info(f"RESTORE_DEBUG:   - External Agents: {agent_count}")
+        logger.info(f"RESTORE_DEBUG:   - Total Records: {total_records}")
+        
         if total_records > 0:
             logger.info(f"Database not empty ({total_records} records), skipping auto-restore")
             return
         
         # Database is empty, check for backup files
         backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+        
+        # Debug: Log backup files found
+        logger.info(f"RESTORE_DEBUG: Backup files found: {len(backup_files)}")
+        for backup_file in backup_files:
+            logger.info(f"RESTORE_DEBUG:   - {backup_file.name}")
+        
         if backup_files:
             latest_backup = max(backup_files, key=os.path.getctime)
             logger.info(f"Database is empty, auto-restoring from: {latest_backup.name}")

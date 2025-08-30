@@ -7,6 +7,9 @@ from typing import List, Optional
 from sqlmodel import Session, select
 from app.models import Tenant
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_tenant(session: Session, name: str, slug: str) -> Tenant:
@@ -95,11 +98,19 @@ def update_tenant_web_context(session: Session, tenant_id: int, enable_web_conte
     if not tenant:
         return None
     
+    logger.info(f"TENANT_DEBUG: Updating web context for tenant {tenant.name} (ID: {tenant_id})")
+    logger.info(f"TENANT_DEBUG: Current enable_web_context: {getattr(tenant, 'enable_web_context', 'NOT_SET')}")
+    logger.info(f"TENANT_DEBUG: New enable_web_context: {enable_web_context}")
+    
     tenant.enable_web_context = enable_web_context
     session.add(tenant)
     session.commit()
-    auto_backup(session, "tenant_web_context_updated")
+    
+    # Verify the change was saved
     session.refresh(tenant)
+    logger.info(f"TENANT_DEBUG: After save, enable_web_context: {getattr(tenant, 'enable_web_context', 'NOT_SET')}")
+    
+    auto_backup(session, "tenant_web_context_updated")
     return tenant
 
 
