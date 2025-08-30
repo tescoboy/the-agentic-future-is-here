@@ -14,12 +14,7 @@ from app.models import Product
 from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
 
-# Ensure logger is always available
-try:
-    logger = logging.getLogger(__name__)
-except Exception as e:
-    print(f"WARNING: Failed to get logger: {e}")
-    logger = logging.getLogger("product_rag")
+logger = logging.getLogger(__name__)
 
 # Default constants copied from signals-agent
 DEFAULT_TOP_K = 50
@@ -118,7 +113,7 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         
         api_key = get_gemini_api_key()
         if not api_key:
-            logger.warning("Gemini API key not available, skipping query expansion")
+            print("WARNING: Gemini API key not available, skipping query expansion")
             return [brief]
         
         genai.configure(api_key=api_key)
@@ -145,7 +140,7 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         return expanded_terms[:6]  # Limit to 6 terms
         
     except Exception as e:
-        logger.warning(f"Query expansion failed: {e}")
+        print(f"WARNING: Query expansion failed: {e}")
         return [brief]  # Fall back to original query
 
 
@@ -179,7 +174,7 @@ async def semantic_search(session: Session, tenant_id: int, brief: str, limit: i
         return results
         
     except Exception as e:
-        logger.error(f"Semantic search failed: {e}")
+        print(f"ERROR: Semantic search failed: {e}")
         return []
 
 
@@ -207,7 +202,7 @@ async def fts_search(session: Session, tenant_id: int, brief: str, limit: int) -
         return results
         
     except Exception as e:
-        logger.error(f"FTS search failed: {e}")
+        print(f"ERROR: FTS search failed: {e}")
         return []
 
 
@@ -278,17 +273,6 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
     Returns:
         List of product dicts with {product_id, rag_score, match_reason}
     """
-    # Debug: Check if logger is available
-    try:
-        print(f"DEBUG: logger available: {logger is not None}")
-        print(f"DEBUG: logger name: {logger.name}")
-    except NameError as e:
-        print(f"DEBUG: logger not defined: {e}")
-        # Re-import logger if needed
-        import logging
-        logger = logging.getLogger(__name__)
-        print(f"DEBUG: re-imported logger: {logger.name}")
-    
     if not brief or not brief.strip():
         return []
     
@@ -304,7 +288,7 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
                 brief = ' '.join(expanded_terms)
                 expanded = True
         except Exception as e:
-            logger.warning(f"Query expansion failed: {e}")
+            print(f"WARNING: Query expansion failed: {e}")
     
     results = []
     
@@ -312,7 +296,7 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
         results = await semantic_search(session, tenant_id, brief, limit)
         # Fall back to FTS if semantic search returns no results
         if not results:
-            logger.info(f"Semantic search returned no results, falling back to FTS for: {brief[:50]}...")
+            print(f"INFO: Semantic search returned no results, falling back to FTS for: {brief[:50]}...")
             results = await fts_search(session, tenant_id, brief, limit)
         
     elif strategy == 'fts':
@@ -327,6 +311,6 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
         results = hybrid_rank(rag_results, fts_results, limit)
     
     # Log the search strategy used
-    logger.info(f"rag_strategy={strategy} expanded={expanded} candidates={len(results)}")
+    print(f"INFO: rag_strategy={strategy} expanded={expanded} candidates={len(results)}")
     
     return results
