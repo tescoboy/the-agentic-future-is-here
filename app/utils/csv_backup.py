@@ -107,12 +107,13 @@ def import_from_csv_zip(session: Session, zip_path: str) -> Dict[str, Any]:
         # Import tenants first (products depend on them)
         if 'tenants.csv' in zipf.namelist():
             try:
+                logger.info("Starting tenant import...")
                 with zipf.open('tenants.csv') as csv_file:
                     # Decode bytes to text
                     csv_text = csv_file.read().decode('utf-8')
                     tenants_imported = _import_tenants_from_csv_text(session, csv_text)
                     results['tenants_imported'] = tenants_imported
-                    logger.info(f"Imported {tenants_imported} tenants")
+                    logger.info(f"Completed tenant import: {tenants_imported} tenants")
             except Exception as e:
                 error_msg = f"Error importing tenants: {str(e)}"
                 results['errors'].append(error_msg)
@@ -121,12 +122,13 @@ def import_from_csv_zip(session: Session, zip_path: str) -> Dict[str, Any]:
         # Import products
         if 'products.csv' in zipf.namelist():
             try:
+                logger.info("Starting product import...")
                 with zipf.open('products.csv') as csv_file:
                     # Decode bytes to text
                     csv_text = csv_file.read().decode('utf-8')
                     products_imported = _import_products_from_csv_text(session, csv_text)
                     results['products_imported'] = products_imported
-                    logger.info(f"Imported {products_imported} products")
+                    logger.info(f"Completed product import: {products_imported} products")
             except Exception as e:
                 error_msg = f"Error importing products: {str(e)}"
                 results['errors'].append(error_msg)
@@ -135,12 +137,13 @@ def import_from_csv_zip(session: Session, zip_path: str) -> Dict[str, Any]:
         # Import external agents
         if 'external_agents.csv' in zipf.namelist():
             try:
+                logger.info("Starting external agent import...")
                 with zipf.open('external_agents.csv') as csv_file:
                     # Decode bytes to text
                     csv_text = csv_file.read().decode('utf-8')
                     agents_imported = _import_agents_from_csv_text(session, csv_text)
                     results['agents_imported'] = agents_imported
-                    logger.info(f"Imported {agents_imported} external agents")
+                    logger.info(f"Completed external agent import: {agents_imported} agents")
             except Exception as e:
                 error_msg = f"Error importing external agents: {str(e)}"
                 results['errors'].append(error_msg)
@@ -236,6 +239,11 @@ def _import_tenants_from_csv_text(session: Session, csv_text: str) -> int:
     
     from io import StringIO
     reader = csv.DictReader(StringIO(csv_text))
+    
+    # Batch process tenants for better performance
+    tenants_batch = []
+    batch_size = 100
+    
     for row in reader:
         try:
             tenant = Tenant(
@@ -247,17 +255,38 @@ def _import_tenants_from_csv_text(session: Session, csv_text: str) -> int:
                 created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
             )
             
-            session.add(tenant)
-            session.flush()  # Get the ID
+            tenants_batch.append(tenant)
             
-            # Store for product lookup
-            tenant_lookup[int(row['id'])] = tenant.id
-            imported += 1
-            
+            # Commit in batches for better performance
+            if len(tenants_batch) >= batch_size:
+                session.add_all(tenants_batch)
+                session.commit()
+                session.flush()
+                
+                # Update lookup after batch commit
+                for tenant in tenants_batch:
+                    if tenant.id:
+                        tenant_lookup[int(row['id'])] = tenant.id
+                
+                imported += len(tenants_batch)
+                tenants_batch = []
+                
         except Exception as e:
             logger.error(f"Error importing tenant {row.get('name', 'unknown')}: {str(e)}")
     
-    session.commit()
+    # Commit remaining tenants
+    if tenants_batch:
+        session.add_all(tenants_batch)
+        session.commit()
+        session.flush()
+        
+        # Update lookup for remaining tenants
+        for tenant in tenants_batch:
+            if tenant.id:
+                tenant_lookup[int(row['id'])] = tenant.id
+        
+        imported += len(tenants_batch)
+    
     return imported
 
 
@@ -300,6 +329,11 @@ def _import_products_from_csv_text(session: Session, csv_text: str) -> int:
     
     from io import StringIO
     reader = csv.DictReader(StringIO(csv_text))
+    
+    # Batch process products for better performance
+    products_batch = []
+    batch_size = 100
+    
     for row in reader:
         try:
             product = Product(
@@ -314,13 +348,24 @@ def _import_products_from_csv_text(session: Session, csv_text: str) -> int:
                 created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
             )
             
-            session.add(product)
-            imported += 1
+            products_batch.append(product)
             
+            # Commit in batches for better performance
+            if len(products_batch) >= batch_size:
+                session.add_all(products_batch)
+                session.commit()
+                imported += len(products_batch)
+                products_batch = []
+                
         except Exception as e:
             logger.error(f"Error importing product {row.get('name', 'unknown')}: {str(e)}")
     
-    session.commit()
+    # Commit remaining products
+    if products_batch:
+        session.add_all(products_batch)
+        session.commit()
+        imported += len(products_batch)
+    
     return imported
 
 
@@ -359,6 +404,11 @@ def _import_agents_from_csv_text(session: Session, csv_text: str) -> int:
     
     from io import StringIO
     reader = csv.DictReader(StringIO(csv_text))
+    
+    # Batch process agents for better performance
+    agents_batch = []
+    batch_size = 100
+    
     for row in reader:
         try:
             agent = ExternalAgent(
@@ -371,13 +421,24 @@ def _import_agents_from_csv_text(session: Session, csv_text: str) -> int:
                 created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
             )
             
-            session.add(agent)
-            imported += 1
+            agents_batch.append(agent)
             
+            # Commit in batches for better performance
+            if len(agents_batch) >= batch_size:
+                session.add_all(agents_batch)
+                session.commit()
+                imported += len(agents_batch)
+                agents_batch = []
+                
         except Exception as e:
             logger.error(f"Error importing agent {row.get('name', 'unknown')}: {str(e)}")
     
-    session.commit()
+    # Commit remaining agents
+    if agents_batch:
+        session.add_all(agents_batch)
+        session.commit()
+        imported += len(agents_batch)
+    
     return imported
 
 
