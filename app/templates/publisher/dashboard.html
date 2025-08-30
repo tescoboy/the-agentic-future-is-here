@@ -65,17 +65,17 @@
             <div class="card bg-light">
                 <div class="card-body text-center">
                     <h5 class="card-title">
-                        <i class="fas fa-edit text-info"></i>
-                        Sales Prompt
+                        <i class="fas fa-robot text-info"></i>
+                        AI Prompts
                     </h5>
-                    {% if has_custom_prompt %}
-                        <span class="badge bg-success">Custom prompt set</span>
+                    {% if has_custom_prompt or tenant.web_grounding_prompt %}
+                        <span class="badge bg-success">Custom prompts set</span>
                     {% else %}
-                        <span class="badge bg-secondary">Using default prompt</span>
+                        <span class="badge bg-secondary">Using defaults</span>
                     {% endif %}
-                    <p class="card-text mt-2">Configure AI sales prompt (Admin)</p>
-                    <a href="/tenants/{{ tenant.id }}/prompt" class="btn btn-info btn-sm">
-                        <i class="fas fa-edit"></i> Configure Prompt
+                    <p class="card-text mt-2">Configure AI prompts and web search</p>
+                    <a href="/publisher/{{ tenant.slug }}/prompts" class="btn btn-info btn-sm">
+                        <i class="fas fa-cog"></i> Manage Prompts
                     </a>
                 </div>
             </div>

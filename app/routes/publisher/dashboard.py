@@ -9,6 +9,7 @@ from sqlmodel import Session
 from app.db import get_session
 from app.repos.tenants import get_tenant_by_slug, update_tenant_web_context
 from app.repos.products import list_products
+from app.services.sales_contract import get_default_sales_prompt
 from app.utils.env import get_service_base_url, get_web_grounding_config
 
 router = APIRouter()
@@ -89,4 +90,94 @@ def update_ai_enrichment_settings(
         logger.error(f"Failed to update AI enrichment settings for tenant {tenant_slug}: {str(e)}")
         response = RedirectResponse(url=f"/publisher/{tenant_slug}/", status_code=302)
         response.headers["Set-Cookie"] = "error_message=Failed to update AI prompt settings; Path=/; Max-Age=5"
+        return response
+
+
+@router.get("/{tenant_slug}/prompts", response_class=HTMLResponse)
+def prompts_page(request: Request, tenant_slug: str, session: Session = Depends(get_session)):
+    """Display the prompts management page."""
+    tenant = _get_tenant_or_404(session, tenant_slug)
+    
+    # Get web grounding configuration
+    web_config = get_web_grounding_config()
+    
+    # Get default prompts
+    default_sales_prompt = get_default_sales_prompt()
+    
+    # Default web grounding prompt
+    default_web_grounding_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context. 
+
+Focus on products from Netflix's catalogue (shows, actors, genres, or packages) 
+and gather concise snippets that will help an advertiser understand why Netflix inventory is a strong fit for the brief.
+
+Campaign Brief:
+{brief}
+
+Netflix Products to Research:
+{product_catalog}
+
+Instructions:
+1. Search for up-to-date information on each Netflix show, actor, or package listed.
+2. Extract **short, factual snippets** (≤350 characters each) that describe:
+   - The show's audience, cultural relevance, or themes
+   - Recent popularity, awards, or positive press coverage
+   - Key actors, storylines, or events tied to the show
+3. Write snippets that can be directly used to justify why a product aligns with the advertiser's brief.
+4. Do not invent information. Only include details from real search results.
+5. Return plain snippets, no formatting.
+
+Response format:
+{
+  "snippets": [
+    "Snippet 1 here…",
+    "Snippet 2 here…"
+  ]
+}"""
+    
+    return templates.TemplateResponse("publisher/prompts.html", {
+        "request": request,
+        "tenant": tenant,
+        "web_config": web_config,
+        "default_sales_prompt": default_sales_prompt,
+        "default_web_grounding_prompt": default_web_grounding_prompt
+    })
+
+
+@router.post("/{tenant_slug}/prompts", response_class=HTMLResponse)
+def update_prompts(
+    request: Request, 
+    tenant_slug: str, 
+    enable_web_context: bool = Form(False),
+    web_grounding_prompt: str = Form(None),
+    custom_prompt: str = Form(None),
+    session: Session = Depends(get_session)
+):
+    """Update prompts and web grounding settings for a tenant."""
+    tenant = _get_tenant_or_404(session, tenant_slug)
+    
+    try:
+        # Update tenant with new web context setting
+        update_tenant_web_context(session, tenant.id, enable_web_context)
+        
+        # Update web grounding prompt
+        if web_grounding_prompt is not None:
+            tenant.web_grounding_prompt = web_grounding_prompt.strip() if web_grounding_prompt.strip() else None
+        
+        # Update custom sales agent prompt
+        if custom_prompt is not None:
+            tenant.custom_prompt = custom_prompt.strip() if custom_prompt.strip() else None
+        
+        # Save all changes
+        session.add(tenant)
+        session.commit()
+        
+        # Redirect back to prompts page with success message
+        response = RedirectResponse(url=f"/publisher/{tenant_slug}/prompts", status_code=302)
+        response.headers["Set-Cookie"] = "success_message=AI prompts updated successfully; Path=/; Max-Age=5"
+        return response
+        
+    except Exception as e:
+        logger.error(f"Failed to update prompts for tenant {tenant_slug}: {str(e)}")
+        response = RedirectResponse(url=f"/publisher/{tenant_slug}/prompts", status_code=302)
+        response.headers["Set-Cookie"] = "error_message=Failed to update prompts; Path=/; Max-Age=5"
         return response

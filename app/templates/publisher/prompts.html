@@ -1,0 +1,247 @@
+{% extends "publisher/base_pub.html" %}
+
+{% block title %}{{ tenant.name }} - AI Prompts{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-robot"></i>
+                AI Prompt Management
+            </h1>
+            <p class="text-muted">Configure how AI understands and processes your products</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    {% if request.cookies.get('success_message') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ request.cookies.get('success_message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    {% if request.cookies.get('error_message') %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ request.cookies.get('error_message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Form for both prompts and web grounding -->
+    <form method="POST" action="/publisher/{{ tenant.slug }}/prompts">
+        
+        <!-- Web Grounding Toggle -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-magnifying-glass"></i> Web Context Grounding
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="enable_web_context" name="enable_web_context" 
+                                   {% if tenant.enable_web_context %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="enable_web_context">
+                                Enable Web Context Grounding
+                            </label>
+                        </div>
+                        <div class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> When enabled, AI will search the web for fresh information about your products to provide better recommendations.
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-globe"></i> Global: {% if web_config.enabled %}ON{% else %}OFF{% endif %}
+                            </span>
+                            <span class="badge bg-info">
+                                <i class="fas fa-brain"></i> Model: {{ web_config.model }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prompt Management -->
+        <div class="row">
+            <!-- Web Grounding Prompt -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-magnifying-glass"></i> Web Grounding Prompt
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-lightbulb"></i> This prompt tells AI how to search the web for information about your products.
+                        </p>
+                        
+                        <!-- Default Prompt Display -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-primary">
+                                <i class="fas fa-file-text"></i> Default Prompt
+                            </h6>
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <pre id="default-web-grounding" class="mb-2 small">{{ default_web_grounding_prompt }}</pre>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="copyToWebGrounding()">
+                                        <i class="fas fa-copy"></i> Copy Default
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Prompt Input -->
+                        <div class="mb-3">
+                            <label for="web_grounding_prompt" class="form-label fw-bold">
+                                <i class="fas fa-edit"></i> Custom Prompt (Optional)
+                            </label>
+                            <textarea class="form-control" id="web_grounding_prompt" name="web_grounding_prompt" rows="8" 
+                                      placeholder="Leave empty to use the default prompt above">{{ tenant.web_grounding_prompt or '' }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Customize how web search is performed. Use macros below.
+                            </div>
+                        </div>
+
+                        <!-- Available Macros -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-primary">
+                                <i class="fas fa-code"></i> Available Macros
+                            </h6>
+                            <div class="card bg-light">
+                                <div class="card-body p-2">
+                                    <small>
+                                        <strong>{brief}</strong> - The buyer's campaign brief<br>
+                                        <strong>{product_catalog}</strong> - Product catalog to research<br>
+                                        <strong>{tenant_name}</strong> - Publisher name<br>
+                                        <strong>{tenant_slug}</strong> - Publisher slug
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Agent Prompt -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments"></i> Sales Agent Prompt
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-lightbulb"></i> This prompt tells AI how to rank and recommend your products to buyers.
+                        </p>
+                        
+                        <!-- Default Prompt Display -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-success">
+                                <i class="fas fa-file-text"></i> Default Prompt
+                            </h6>
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <pre id="default-sales" class="mb-2 small">{{ default_sales_prompt }}</pre>
+                                    <button type="button" class="btn btn-outline-success btn-sm" onclick="copyToSales()">
+                                        <i class="fas fa-copy"></i> Copy Default
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Prompt Input -->
+                        <div class="mb-3">
+                            <label for="custom_prompt" class="form-label fw-bold">
+                                <i class="fas fa-edit"></i> Custom Prompt (Optional)
+                            </label>
+                            <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="8" 
+                                      placeholder="Leave empty to use the default prompt above">{{ tenant.custom_prompt or '' }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Customize how AI ranks and recommends products. Use macros below.
+                            </div>
+                        </div>
+
+                        <!-- Available Macros -->
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-success">
+                                <i class="fas fa-code"></i> Available Macros
+                            </h6>
+                            <div class="card bg-light">
+                                <div class="card-body p-2">
+                                    <small>
+                                        <strong>{brief}</strong> - The buyer's campaign brief<br>
+                                        <strong>{product_catalog}</strong> - Product catalog<br>
+                                        <strong>{web_grounding_results}</strong> - Web search results<br>
+                                        <strong>{product_snippets}</strong> - Per-product snippets<br>
+                                        <strong>{tenant_name}</strong> - Publisher name
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Save All Settings
+                        </button>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-info-circle"></i> Changes will take effect immediately for new requests.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function copyToWebGrounding() {
+    const defaultText = document.getElementById('default-web-grounding').textContent;
+    document.getElementById('web_grounding_prompt').value = defaultText;
+    
+    // Show feedback
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    button.classList.remove('btn-outline-primary');
+    button.classList.add('btn-success');
+    
+    setTimeout(function() {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-primary');
+    }, 2000);
+}
+
+function copyToSales() {
+    const defaultText = document.getElementById('default-sales').textContent;
+    document.getElementById('custom_prompt').value = defaultText;
+    
+    // Show feedback
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    button.classList.remove('btn-outline-success');
+    button.classList.add('btn-success');
+    
+    setTimeout(function() {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-success');
+    }, 2000);
+}
+</script>
+{% endblock %}
