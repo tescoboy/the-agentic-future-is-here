@@ -106,6 +106,12 @@ def auto_restore_on_startup(session: Session) -> None:
         for backup_file in backup_files:
             logger.info(f"RESTORE_DEBUG:   - {backup_file.name}")
         
+        # Debug: Also check what files exist in the backup directory
+        all_files = list(BACKUP_DIR.glob("*"))
+        logger.info(f"RESTORE_DEBUG: All files in backup directory: {len(all_files)}")
+        for file in all_files:
+            logger.info(f"RESTORE_DEBUG:   - {file.name}")
+        
         if backup_files:
             latest_backup = max(backup_files, key=os.path.getctime)
             logger.info(f"Database is empty, auto-restoring from: {latest_backup.name}")
