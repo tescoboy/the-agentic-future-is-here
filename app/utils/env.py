@@ -24,9 +24,9 @@ def get_service_base_url() -> str:
     Get service base URL from environment variable.
     
     Returns:
-        Service base URL (default: http://localhost:8000)
+        Service base URL (default: production URL)
     """
-    base_url = os.environ.get('SERVICE_BASE_URL', 'http://localhost:8000')
+    base_url = os.environ.get('SERVICE_BASE_URL', 'https://the-agentic-future-is-here-5.onrender.com')
     # Strip whitespace and trailing slashes
     base_url = base_url.strip().rstrip('/')
     

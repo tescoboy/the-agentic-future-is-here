@@ -27,6 +27,6 @@ def get_env_config() -> Dict[str, Any]:
         "concurrency": int(os.getenv("ORCH_CONCURRENCY", "16")),  # Increased from 8 to 16 for better performance
         "cb_fails": int(os.getenv("CB_FAILS", "2")),
         "cb_ttl_s": int(os.getenv("CB_TTL_S", "60")),
-        "service_base_url": os.getenv("SERVICE_BASE_URL", "http://localhost:8000")
+        "service_base_url": os.getenv("SERVICE_BASE_URL", "https://the-agentic-future-is-here-5.onrender.com")
     }
 
