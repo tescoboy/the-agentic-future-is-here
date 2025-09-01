@@ -1,5 +1,6 @@
 """MCP JSON-RPC method dispatcher and handlers."""
 
+import asyncio
 import logging
 from typing import Dict, Any, List, Optional
 from sqlmodel import Session
@@ -171,35 +172,30 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                 if web_config and web_config.get("enabled", False):
                     logger.info(f"WEB_DEBUG: Performing web grounding per product for tenant {tenant.slug} with {len(candidate_products)} RAG-filtered products")
                     
-                    # Generate web grounding snippets per product
-                    all_snippets = []
-                    product_snippets = {}
+                    # Generate web grounding snippets per product - ASYNC OPTIMIZATION
+                    logger.info(f"WEB_DEBUG: Starting async web grounding for {len(candidate_products)} products")
                     
-                    logger.info(f"WEB_DEBUG: Starting web grounding for {len(candidate_products)} products")
-                    
-                    for i, product in enumerate(candidate_products, 1):
-                        logger.info(f"WEB_DEBUG: Processing product {i}/{len(candidate_products)}: {product.name}")
-                        # Prepare context for this specific product
-                        context = {
-                            "brief": brief,
-                            "tenant_name": tenant.name,
-                            "tenant_slug": tenant.slug,
-                            "product_catalog": [
-                                {
-                                    "name": product.name,
-                                    "description": product.description,
-                                    "price_cpm": product.price_cpm,
-                                    "delivery_type": product.delivery_type
-                                }
-                            ]
-                        }
-                        
-                        # Debug: Log the product information being passed
-                        logger.info(f"WEB_DEBUG: Product info for {product.name}:")
-                        logger.info(f"WEB_DEBUG:   - Name: {product.name}")
-                        logger.info(f"WEB_DEBUG:   - Description: {product.description}")
-                        
+                    async def fetch_product_web_context(product):
+                        """Fetch web context for a single product asynchronously."""
                         try:
+                            # Prepare context for this specific product
+                            context = {
+                                "brief": brief,
+                                "tenant_name": tenant.name,
+                                "tenant_slug": tenant.slug,
+                                "product_catalog": [
+                                    {
+                                        "name": product.name,
+                                        "description": product.description,
+                                        "price_cpm": product.price_cpm,
+                                        "delivery_type": product.delivery_type
+                                    }
+                                ]
+                            }
+                            
+                            # Debug: Log the product information being passed
+                            logger.info(f"WEB_DEBUG: Processing product: {product.name}")
+                            
                             # Get web grounding for this specific product
                             result = await fetch_web_context(
                                 brief, 
@@ -213,14 +209,46 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                             
                             if result["snippets"]:
                                 snippet = result["snippets"][0]  # Take the first snippet
-                                all_snippets.append(snippet)
-                                product_snippets[product.id] = snippet
                                 logger.info(f"WEB_DEBUG: Product {product.name} snippet: {snippet}")
+                                return product.id, snippet
                             else:
                                 logger.info(f"WEB_DEBUG: No snippet generated for product {product.name}")
+                                return product.id, None
                                 
                         except Exception as e:
                             logger.warning(f"WEB_DEBUG: Web grounding failed for product {product.name}: {str(e)}")
+                            return product.id, None
+                    
+                    # Execute web grounding tasks in batches for optimal performance
+                    # Use a semaphore to limit concurrent web grounding requests to prevent API overload
+                    web_semaphore = asyncio.Semaphore(10)  # Limit to 10 concurrent web grounding requests
+                    batch_size = 15  # Process 15 products at a time for optimal performance
+                    
+                    async def fetch_product_web_context_with_semaphore(product):
+                        """Fetch web context for a single product with semaphore control."""
+                        async with web_semaphore:
+                            return await fetch_product_web_context(product)
+                    
+                    # Process products in batches
+                    all_web_results = []
+                    for i in range(0, len(candidate_products), batch_size):
+                        batch_products = candidate_products[i:i + batch_size]
+                        logger.info(f"WEB_DEBUG: Processing batch {i//batch_size + 1}/{(len(candidate_products) + batch_size - 1)//batch_size} ({len(batch_products)} products)")
+                        
+                        batch_tasks = [fetch_product_web_context_with_semaphore(product) for product in batch_products]
+                        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=False)
+                        all_web_results.extend(batch_results)
+                    
+                    web_results = all_web_results
+                    
+                    # Process results
+                    all_snippets = []
+                    product_snippets = {}
+                    
+                    for product_id, snippet in web_results:
+                        if snippet:
+                            all_snippets.append(snippet)
+                            product_snippets[product_id] = snippet
                     
                     web_snippets = all_snippets
                     web_grounding_results = {
@@ -239,6 +267,9 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         # Step 4: Resolve prompt: tenant custom prompt or default
         prompt = tenant.custom_prompt if tenant.custom_prompt else get_default_sales_prompt()
         prompt_source = "custom" if tenant.custom_prompt else "default"
+        
+        # Replace tenant name placeholder in the prompt
+        prompt = prompt.replace("{tenant_name}", tenant.name)
         
         # Step 5: Call AI ranking on filtered candidates with web grounding results
         try:

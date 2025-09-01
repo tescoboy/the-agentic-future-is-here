@@ -3,13 +3,13 @@
 from typing import List, Dict, Any
 
 
-def filter_items_by_score_threshold(items: List[Dict[str, Any]], threshold: float = 0.70) -> List[Dict[str, Any]]:
+def filter_items_by_score_threshold(items: List[Dict[str, Any]], threshold: float = 0.50) -> List[Dict[str, Any]]:
     """
     Filter items by score threshold.
     
     Args:
         items: List of items with optional 'score' field
-        threshold: Minimum score threshold (default 0.70)
+        threshold: Minimum score threshold (default 0.50)
         
     Returns:
         Filtered list of items with score >= threshold

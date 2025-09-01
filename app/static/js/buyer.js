@@ -2,14 +2,14 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const briefForm = document.getElementById('briefForm');
-    const loadingOverlay = document.getElementById('loadingOverlay');
     const submitBtn = document.getElementById('submitBtn');
     
     if (briefForm) {
-        briefForm.addEventListener('submit', function() {
+        briefForm.addEventListener('submit', function(e) {
             // Show loading overlay
+            const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) {
-                loadingOverlay.classList.remove('d-none');
+                loadingOverlay.style.display = 'flex';
             }
             
             // Disable submit button

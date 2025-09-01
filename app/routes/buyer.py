@@ -256,3 +256,6 @@ async def submit_brief(
 async def get_rag_debug_logs():
     """Get the latest RAG debug logs."""
     return {"rag_logs": rag_debug_logs}
+
+
+
