@@ -2,7 +2,6 @@
 Export functions for data persistence.
 """
 
-import gzip
 import json
 import logging
 import os
@@ -19,7 +18,7 @@ from .core import ensure_data_directories, BACKUP_DIR, SETTINGS_FILE, TENANT_SET
 logger = logging.getLogger(__name__)
 
 
-def export_all_data(session: Session, use_compression: bool = True) -> Dict[str, Any]:
+def export_all_data(session: Session) -> Dict[str, Any]:
     """Export all application data to a comprehensive backup."""
     logger.info("Starting JSON backup export...")
     ensure_data_directories()
@@ -58,16 +57,12 @@ def export_all_data(session: Session, use_compression: bool = True) -> Dict[str,
     
     # Save to backup file with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    if use_compression:
-        backup_file = os.path.join(BACKUP_DIR, f"full_backup_{timestamp}.json.gz")
-        logger.info(f"Writing compressed backup file: {backup_file}")
-        write_compressed_backup(backup_data, backup_file)
-    else:
-        backup_file = os.path.join(BACKUP_DIR, f"full_backup_{timestamp}.json")
-        logger.info(f"Writing backup file: {backup_file}")
-        write_backup(backup_data, backup_file)
+    backup_file = BACKUP_DIR / f"full_backup_{timestamp}.json"
     
     logger.info(f"Writing backup file: {backup_file}")
+    with open(backup_file, 'w', encoding='utf-8') as f:
+        json.dump(backup_data, f, indent=2, ensure_ascii=False)
+    
     # Calculate summary statistics
     total_tenants = len(tenants_data)
     total_products = sum(len(t['products']) for t in tenants_data)
@@ -248,13 +243,3 @@ def export_product_embeddings(session: Session) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Failed to export product embeddings: {e}")
         return []
-
-def write_compressed_backup(backup_data: Dict[str, Any], backup_file: str) -> None:
-    """Write backup data to a compressed gzip file."""
-    with gzip.open(backup_file, "wt", encoding="utf-8") as f:
-        json.dump(backup_data, f, separators=(",", ":"), ensure_ascii=False)
-
-def write_backup(backup_data: Dict[str, Any], backup_file: str) -> None:
-    """Write backup data to a regular JSON file."""
-    with open(backup_file, "w", encoding="utf-8") as f:
-        json.dump(backup_data, f, separators=(",", ":"), ensure_ascii=False)
