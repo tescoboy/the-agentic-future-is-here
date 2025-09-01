@@ -8,6 +8,11 @@ install:
 
 start:
 	@echo "Starting FastAPI application on port $(PORT)..."
+	@echo "Setting environment variables..."
+	@export GEMINI_API_KEY="AIzaSyCW9W2WkqX64ZO0Mc9s1S9Fteyr0QH-gfc" && \
+	export ENABLE_WEB_CONTEXT=1 && \
+	export SERVICE_BASE_URL="http://localhost:$(PORT)" && \
+	export WEB_CONTEXT_TIMEOUT_MS=30000 && \
 	uvicorn app.main:app --host 0.0.0.0 --port $(PORT)
 
 dev:

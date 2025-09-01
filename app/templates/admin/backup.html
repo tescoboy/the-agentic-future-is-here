@@ -25,11 +25,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <button class="btn btn-info btn-sm" onclick="testDisk()">
-                            <i class="fas fa-hdd"></i> Test Persistent Disk
-                        </button>
-                    </div>
+                                <div class="mt-3">
+                <button class="btn btn-info btn-sm" onclick="testDisk()">
+                    <i class="fas fa-hdd"></i> Test Persistent Disk
+                </button>
+                <button class="btn btn-warning btn-sm ms-2" onclick="backfillEmbeddings()">
+                    <i class="fas fa-brain"></i> Backfill Embeddings
+                </button>
+            </div>
                 </div>
             </div>
 
@@ -593,29 +596,55 @@ async function downloadCsvBackup(filename) {
     }
 }
 
-async function testDisk() {
-    try {
-        const button = event.target;
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
-        button.disabled = true;
-        
-        const response = await fetch('/admin/backup/test-disk');
-        const data = await response.json();
-        
-        if (response.ok) {
-            showAlert(`Disk test: ${data.message}`, 'success');
-        } else {
-            showAlert(`Disk test failed: ${data.detail}`, 'danger');
+        async function testDisk() {
+            try {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+                button.disabled = true;
+                
+                const response = await fetch('/admin/backup/test-disk');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert(`Disk test: ${data.message}`, 'success');
+                } else {
+                    showAlert(`Disk test failed: ${data.detail}`, 'danger');
+                }
+            } catch (error) {
+                showAlert(`Disk test failed: ${error.message}`, 'danger');
+            } finally {
+                const button = event.target;
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
         }
-    } catch (error) {
-        showAlert(`Disk test failed: ${error.message}`, 'danger');
-    } finally {
-        const button = event.target;
-        button.innerHTML = originalText;
-        button.disabled = false;
-    }
-}
+
+        async function backfillEmbeddings() {
+            try {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backfilling...';
+                button.disabled = true;
+                
+                const response = await fetch('/admin/backup/backfill-embeddings', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert(`Embeddings backfill: ${data.message}`, 'success');
+                } else {
+                    showAlert(`Embeddings backfill failed: ${data.detail}`, 'danger');
+                }
+            } catch (error) {
+                showAlert(`Embeddings backfill failed: ${error.message}`, 'danger');
+            } finally {
+                const button = event.target;
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
 
 async function importCsvBackupFromFile(filename) {
     if (!confirm(`Are you sure you want to restore from ${filename}? This will completely replace all existing data.`)) {

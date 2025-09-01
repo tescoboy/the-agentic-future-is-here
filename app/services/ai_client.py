@@ -6,11 +6,14 @@ Copied from reference/salesagent/product_catalog_providers/ai.py @ 0a0403c
 import json
 import os
 import asyncio
+import logging
 from typing import List, Dict, Any, Optional
 import google.generativeai as genai
 
 from app.models import Product
 from app.services.sales_contract import get_default_sales_prompt
+
+logger = logging.getLogger(__name__)
 
 
 async def rank_products_with_ai(brief: str, products: List[Product], prompt: str, web_snippets: Optional[List[str]] = None, web_grounding_results: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:

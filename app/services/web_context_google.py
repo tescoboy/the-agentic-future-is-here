@@ -56,29 +56,21 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
             system_prompt = MacroProcessor.process_prompt(custom_prompt, context)
         else:
             # Default web grounding prompt
-            system_prompt = """You are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context about a specific Netflix product.
-
-IMPORTANT: Extract the specific show, actor, or content name from the product name and research ONLY that specific content.
-
-Focus on researching the specific Netflix product provided and gather concise snippets that will help an advertiser understand why this particular product is a strong fit for the brief.
-
+            system_prompt = """you are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context.
+The sales team thinks the following products may answer the advertisers brief and they need your help researching them so they can recommend them.
+Products = {product_catalog}
+In the title and description of the product you will find shows, actors, genres, or packages. You job is to use these to do web searches and gather concise snippets that will help an advertiser understand if the product is a strong fit for the brief.
 Campaign Brief:
 {brief}
-
-Specific Netflix Product to Research:
-{product_catalog}
-
 Instructions:
-1. FIRST: Extract the specific show/actor name from the product name (e.g., "Netflix Ozark Package" → research "Ozark")
-2. Search for up-to-date information about that SPECIFIC show/actor/content.
-3. Extract **short, factual snippets** (≤350 characters each) that describe:
-   - The specific show's audience, cultural relevance, or themes
-   - Recent popularity, awards, or positive press coverage for this specific content
-   - Key actors, storylines, or events tied to this specific show/product
-4. Write snippets that can be directly used to justify why this specific product aligns with the advertiser's brief.
-5. Do not invent information. Only include details from real search results about this specific product.
-6. DO NOT return generic Netflix content - focus ONLY on the specific show/actor mentioned in the product name.
-
+1. Search for up-to-date information on each Netflix show, actor, or package listed.
+2. Extract **short, factual snippets** (≤350 characters each) that describe:
+   - The show's audience, cultural relevance, or themes
+   - Recent popularity, awards, or positive press coverage
+   - Key actors, storylines, or events tied to the show
+3. Write snippets that can be directly used to justify why a product aligns with the advertiser's brief.
+4. Do not invent information. Only include details from real search results.
+5. Return plain snippets, no formatting.
 Response format:
 {
   "snippets": [

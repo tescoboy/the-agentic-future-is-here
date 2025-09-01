@@ -7,11 +7,31 @@ Implements RAG/FTS/Hybrid search pipeline for filtering buyer briefs against ten
 before sending top-K candidates to AI ranking.
 """
 
+import logging
+import os
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 from app.models import Product
 from app.utils.embeddings import batch_embed_text, search_similar_products
 from app.utils.fts import fts_search_products
+
+# Set up logger for RAG operations
+logger = logging.getLogger(__name__)
+
+# Also set up a file logger for RAG operations
+rag_logger = logging.getLogger('rag_operations')
+rag_logger.setLevel(logging.INFO)
+
+# Create logs directory if it doesn't exist
+os.makedirs('logs', exist_ok=True)
+
+# Add file handler for RAG logs
+if not rag_logger.handlers:
+    file_handler = logging.FileHandler('logs/rag_operations.log')
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    rag_logger.addHandler(file_handler)
 
 # Default constants copied from signals-agent
 DEFAULT_TOP_K = 50
@@ -105,12 +125,14 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         List of expanded search terms
     """
     try:
+        logger.info(f"🔄 QUERY EXPANSION: '{brief}'")
+        
         import google.generativeai as genai
         from app.utils.env import get_gemini_api_key
         
         api_key = get_gemini_api_key()
         if not api_key:
-            print("Gemini API key not available, skipping query expansion")
+            logger.warning("❌ Gemini API key not available, skipping query expansion")
             return [brief]
         
         genai.configure(api_key=api_key)
@@ -127,6 +149,7 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         Return only the terms, separated by commas. Do not include explanations.
         """
         
+        logger.info(f"🤖 Calling Gemini API for expansion...")
         response = model.generate_content(prompt)
         expanded_terms = [term.strip() for term in response.text.split(',')]
         
@@ -134,10 +157,13 @@ async def expand_query_with_ai(brief: str) -> List[str]:
         if brief.lower() not in [term.lower() for term in expanded_terms]:
             expanded_terms.insert(0, brief)
         
-        return expanded_terms[:6]  # Limit to 6 terms
+        final_terms = expanded_terms[:6]  # Limit to 6 terms
+        logger.info(f"✅ Expansion complete: {final_terms}")
+        
+        return final_terms
         
     except Exception as e:
-        print(f"Query expansion failed: {e}")
+        logger.error(f"❌ Query expansion failed: {e}")
         return [brief]  # Fall back to original query
 
 
@@ -155,13 +181,20 @@ async def semantic_search(session: Session, tenant_id: int, brief: str, limit: i
         List of product dicts with rag_score
     """
     try:
+        logger.info(f"🧠 SEMANTIC SEARCH: '{brief}' (limit: {limit})")
+        
         # Get query embedding
         query_embedding = await batch_embed_text([brief])
         if not query_embedding:
+            logger.error(f"❌ Failed to generate embedding for: '{brief}'")
             return []
+        
+        logger.info(f"✅ Generated embedding (dimension: {len(query_embedding[0])})")
         
         # Search similar embeddings
         results = await search_similar_products(session, tenant_id, query_embedding[0], limit)
+        
+        logger.info(f"🎯 Found {len(results)} similar products")
         
         # Add rag_score to results
         for result in results:
@@ -171,7 +204,7 @@ async def semantic_search(session: Session, tenant_id: int, brief: str, limit: i
         return results
         
     except Exception as e:
-        print(f"Semantic search failed: {e}")
+        logger.error(f"❌ Semantic search failed: {e}")
         return []
 
 
@@ -189,7 +222,11 @@ async def fts_search(session: Session, tenant_id: int, brief: str, limit: int) -
         List of product dicts with fts_score
     """
     try:
+        logger.info(f"📝 FTS SEARCH: '{brief}' (limit: {limit})")
+        
         results = fts_search_products(session, tenant_id, brief, limit)
+        
+        logger.info(f"🎯 Found {len(results)} text matches")
         
         # Add fts_score to results
         for result in results:
@@ -199,7 +236,7 @@ async def fts_search(session: Session, tenant_id: int, brief: str, limit: int) -
         return results
         
     except Exception as e:
-        print(f"FTS search failed: {e}")
+        logger.error(f"❌ FTS search failed: {e}")
         return []
 
 
@@ -270,15 +307,38 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
     Returns:
         List of product dicts with {product_id, rag_score, match_reason}
     """
-    print(f"DEBUG: filter_products_for_brief called with tenant_id={tenant_id}, brief='{brief[:50]}...', limit={limit}")
+    logger.info(f"🔍 RAG SEARCH STARTED")
+    logger.info(f"📝 Brief: '{brief}'")
+    logger.info(f"🏢 Tenant ID: {tenant_id}")
+    logger.info(f"📊 Limit: {limit}")
+    
+    # Also log to file for easy access
+    rag_logger.info(f"🔍 RAG SEARCH STARTED")
+    rag_logger.info(f"📝 Brief: '{brief}'")
+    rag_logger.info(f"🏢 Tenant ID: {tenant_id}")
+    rag_logger.info(f"📊 Limit: {limit}")
+    
+    # Also print to console for immediate visibility
+    print(f"\n🔍 RAG SEARCH STARTED - Brief: '{brief}' - Tenant: {tenant_id} - Limit: {limit}")
     
     if not brief or not brief.strip():
+        logger.warning("❌ Empty brief provided")
         return []
     
     # Choose search strategy
     strategy, use_expansion = choose_search_strategy(brief)
+    logger.info(f"🎯 Strategy: {strategy.upper()}")
+    logger.info(f"🔄 Query Expansion: {'YES' if use_expansion else 'NO'}")
+    
+    # Also log to file for easy access
+    rag_logger.info(f"🎯 Strategy: {strategy.upper()}")
+    rag_logger.info(f"🔄 Query Expansion: {'YES' if use_expansion else 'NO'}")
+    
+    # Also print to console for immediate visibility
+    print(f"🎯 Strategy: {strategy.upper()} - Query Expansion: {'YES' if use_expansion else 'NO'}")
     
     # Expand query if needed
+    original_brief = brief
     expanded = False
     if use_expansion:
         try:
@@ -286,30 +346,62 @@ async def filter_products_for_brief(session: Session, tenant_id: int, brief: str
             if len(expanded_terms) > 1:
                 brief = ' '.join(expanded_terms)
                 expanded = True
+                logger.info(f"📈 Expanded Query: '{brief}'")
+                logger.info(f"📋 Expansion Terms: {expanded_terms}")
         except Exception as e:
-            print(f"Query expansion failed: {e}")
+            logger.error(f"❌ Query expansion failed: {e}")
     
     results = []
     
     if strategy == 'rag':
+        logger.info(f"🧠 Using SEMANTIC SEARCH")
         results = await semantic_search(session, tenant_id, brief, limit)
+        logger.info(f"🎯 Semantic Results: {len(results)} products found")
+        
         # Fall back to FTS if semantic search returns no results
         if not results:
-            print(f"Semantic search returned no results, falling back to FTS for: {brief[:50]}...")
+            logger.warning(f"⚠️  Semantic search returned no results, falling back to FTS")
             results = await fts_search(session, tenant_id, brief, limit)
+            logger.info(f"📝 FTS Fallback Results: {len(results)} products found")
         
     elif strategy == 'fts':
+        logger.info(f"📝 Using FULL-TEXT SEARCH")
         results = await fts_search(session, tenant_id, brief, limit)
+        logger.info(f"📝 FTS Results: {len(results)} products found")
         
     elif strategy == 'hybrid':
+        logger.info(f"🔄 Using HYBRID SEARCH (RAG + FTS)")
         # Get both RAG and FTS results
         rag_results = await semantic_search(session, tenant_id, brief, limit * 2)
         fts_results = await fts_search(session, tenant_id, brief, limit * 2)
         
+        logger.info(f"🧠 RAG Results: {len(rag_results)} products")
+        logger.info(f"📝 FTS Results: {len(fts_results)} products")
+        
         # Combine using hybrid ranking
         results = hybrid_rank(rag_results, fts_results, limit)
+        logger.info(f"🔄 Hybrid Combined: {len(results)} products")
     
-    # Log the search strategy used
-    print(f"rag_strategy={strategy} expanded={expanded} candidates={len(results)}")
+    # Log detailed results
+    logger.info(f"📊 SEARCH RESULTS SUMMARY:")
+    logger.info(f"🎯 Strategy Used: {strategy.upper()}")
+    logger.info(f"🔄 Query Expanded: {'YES' if expanded else 'NO'}")
+    logger.info(f"📈 Total Candidates: {len(results)}")
+    
+    if results:
+        logger.info(f"🏆 TOP RESULTS:")
+        for i, result in enumerate(results[:10], 1):  # Show top 10
+            product_id = result.get('product_id', 'N/A')
+            name = result.get('name', 'Unknown')
+            rag_score = result.get('rag_score', 0)
+            fts_score = result.get('fts_score', 0)
+            combined_score = result.get('combined_score', 0)
+            match_reason = result.get('match_reason', 'unknown')
+            
+            logger.info(f"  {i:2d}. ID:{product_id:4d} | {name[:40]:<40s} | RAG:{rag_score:.3f} | FTS:{fts_score:.3f} | Combined:{combined_score:.3f} | {match_reason}")
+    else:
+        logger.warning("❌ No results found")
+    
+    logger.info(f"🔍 RAG SEARCH COMPLETED")
     
     return results

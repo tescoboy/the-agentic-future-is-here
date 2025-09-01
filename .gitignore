@@ -119,6 +119,7 @@ dmypy.json
 csv_backup_*.json
 small_backup_*.json
 large_backup_*.json
+full_backup_*.json
 catalog_final.csv
 filtering_test_results.json
 test_results_*.json

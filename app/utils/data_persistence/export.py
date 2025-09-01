@@ -7,7 +7,7 @@ import logging
 import os
 from datetime import datetime
 from typing import Dict, List, Any
-from sqlmodel import Session, select
+from sqlmodel import Session, select, text
 
 from app.models import Tenant, Product, ExternalAgent
 from app.repos.tenants import get_tenant_by_slug
@@ -36,6 +36,14 @@ def export_all_data(session: Session) -> Dict[str, Any]:
     logger.info("Exporting tenant settings...")
     tenant_settings_data = export_tenant_settings()
     
+    logger.info("Exporting product embeddings...")
+    try:
+        embeddings_data = export_product_embeddings(session)
+        logger.info(f"Embeddings export completed: {len(embeddings_data)} embeddings")
+    except Exception as e:
+        logger.error(f"Embeddings export failed: {e}")
+        embeddings_data = []
+    
     # Compile backup data
     backup_data = {
         "exported_at": datetime.now().isoformat(),
@@ -43,7 +51,8 @@ def export_all_data(session: Session) -> Dict[str, Any]:
         "tenants": tenants_data,
         "external_agents": external_agents_data,
         "app_settings": app_settings_data,
-        "tenant_settings": tenant_settings_data
+        "tenant_settings": tenant_settings_data,
+        "product_embeddings": embeddings_data
     }
     
     # Save to backup file with timestamp
@@ -191,3 +200,46 @@ def export_tenant_settings() -> Dict[str, Any]:
     
     logger.info("Exported tenant settings")
     return settings
+
+
+def export_product_embeddings(session: Session) -> List[Dict[str, Any]]:
+    """Export all product embeddings."""
+    logger.info("Starting product embeddings export...")
+    
+    try:
+        # Query all embeddings using raw SQL since it's not a SQLModel
+        embeddings_query = """
+        SELECT id, product_id, embedding_text, embedding_hash, embedding, 
+               created_at, provider, model, dim, updated_at, is_stale
+        FROM product_embeddings
+        """
+        
+        result = session.execute(text(embeddings_query))
+        embeddings = result.fetchall()
+        
+        logger.info(f"Found {len(embeddings)} product embeddings")
+        
+        # Convert to list of dictionaries
+        embeddings_data = []
+        for embedding in embeddings:
+            embedding_dict = {
+                "id": embedding[0],
+                "product_id": embedding[1],
+                "embedding_text": embedding[2],
+                "embedding_hash": embedding[3],
+                "embedding": embedding[4].hex() if embedding[4] else None,  # Convert BLOB to hex string
+                "created_at": embedding[5].isoformat() if embedding[5] and hasattr(embedding[5], 'isoformat') else str(embedding[5]) if embedding[5] else None,
+                "provider": embedding[6],
+                "model": embedding[7],
+                "dim": embedding[8],
+                "updated_at": embedding[9],
+                "is_stale": embedding[10]
+            }
+            embeddings_data.append(embedding_dict)
+        
+        logger.info(f"Completed product embeddings export: {len(embeddings_data)} embeddings")
+        return embeddings_data
+        
+    except Exception as e:
+        logger.error(f"Failed to export product embeddings: {e}")
+        return []

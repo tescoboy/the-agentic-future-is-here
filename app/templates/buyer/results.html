@@ -63,7 +63,7 @@
                                             <div class="col-md-6 mb-3">
                                                 <div class="card h-100 shadow-sm">
                                                     <div class="card-header d-flex justify-content-between align-items-start bg-light">
-                                                        <h6 class="mb-0 fw-bold text-truncate" style="max-width: 70%;" title="{{ item.product_name }}">{{ item.product_name }}</h6>
+                                                        <h6 class="mb-0 fw-bold product-title" title="{{ item.product_name }}">{{ item.product_name }}</h6>
                                                         <button class="btn btn-success btn-sm" onclick="activateCampaign('{{ item.product_name }}')">
                                                             <i class="fa-solid fa-rocket me-1"></i>
                                                             Activate
@@ -227,7 +227,7 @@
                                             <div class="col-md-6 mb-3">
                                                 <div class="card h-100">
                                                     <div class="card-header">
-                                                        <h6 class="mb-0 text-truncate" style="max-width: 100%;" title="{{ item.name }}">{{ item.name }}</h6>
+                                                        <h6 class="mb-0 fw-bold product-title" title="{{ item.name }}">{{ item.name }}</h6>
                                                     </div>
                                                     <div class="card-body">
                                                         <!-- Reason Section with Expandable Text -->
@@ -280,6 +280,28 @@
                             No signals agents were selected or processed.
                         </div>
                     {% endif %}
+                </div>
+            </div>
+
+            <!-- RAG Debug Information -->
+            <!-- Debug: rag_debug_logs length = {{ rag_debug_logs|length }} -->
+            <div class="card mb-4 shadow">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-bug me-2"></i>
+                        RAG Debug Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="rag-debug-container">
+                        {% if rag_debug_logs %}
+                            {% for log_line in rag_debug_logs %}
+                                <div class="rag-debug-line">{{ log_line }}</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="rag-debug-line">No RAG debug logs available...</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -336,6 +358,81 @@ document.addEventListener('DOMContentLoaded', function() {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+    
+    // Load RAG debug logs
+    loadRAGDebugLogs();
 });
+
+function loadRAGDebugLogs() {
+    fetch('/buyer/debug/rag-logs')
+        .then(response => response.json())
+        .then(data => {
+            if (data.rag_logs && data.rag_logs.length > 0) {
+                displayRAGDebugLogs(data.rag_logs);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading RAG debug logs:', error);
+        });
+}
+
+function displayRAGDebugLogs(logs) {
+    // Find or create the RAG debug section
+    let ragDebugSection = document.querySelector('.rag-debug-container');
+    if (!ragDebugSection) {
+        // Create the RAG debug section
+        const debugCard = document.createElement('div');
+        debugCard.className = 'card mb-4 shadow';
+        debugCard.innerHTML = `
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">
+                    <i class="fa-solid fa-bug me-2"></i>
+                    RAG Debug Information
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="rag-debug-container"></div>
+            </div>
+        `;
+        
+        // Insert before the navigation section
+        const navigation = document.querySelector('.d-grid.gap-2.d-md-flex.justify-content-md-center');
+        navigation.parentNode.insertBefore(debugCard, navigation);
+        ragDebugSection = debugCard.querySelector('.rag-debug-container');
+    }
+    
+    // Clear existing logs
+    ragDebugSection.innerHTML = '';
+    
+    // Add each log line
+    logs.forEach(log => {
+        const logLine = document.createElement('div');
+        logLine.className = 'rag-debug-line';
+        logLine.textContent = log;
+        
+        // Add color coding based on emoji
+        if (log.includes('🔍')) {
+            logLine.style.color = '#0d6efd';
+            logLine.style.fontWeight = '600';
+        } else if (log.includes('🎯')) {
+            logLine.style.color = '#198754';
+            logLine.style.fontWeight = '600';
+        } else if (log.includes('🧠')) {
+            logLine.style.color = '#6f42c1';
+            logLine.style.fontWeight = '600';
+        } else if (log.includes('📝')) {
+            logLine.style.color = '#fd7e14';
+            logLine.style.fontWeight = '600';
+        } else if (log.includes('❌')) {
+            logLine.style.color = '#dc3545';
+            logLine.style.fontWeight = '600';
+        } else if (log.includes('⚠️')) {
+            logLine.style.color = '#ffc107';
+            logLine.style.fontWeight = '600';
+        }
+        
+        ragDebugSection.appendChild(logLine);
+    });
+}
 </script>
 {% endblock %}

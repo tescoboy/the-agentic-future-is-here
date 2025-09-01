@@ -19,6 +19,7 @@ from app.utils.csv_backup import (
 )
 from app.utils.data_persistence import BACKUP_DIR
 from app.db import get_session
+from app.services.embeddings_backfill import backfill_once
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -237,6 +238,24 @@ async def test_disk_endpoint():
         return {"message": result, "status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Disk test failed: {str(e)}")
+
+
+@router.post("/backfill-embeddings")
+async def backfill_embeddings_endpoint():
+    """Trigger embeddings backfill for products."""
+    try:
+        session = next(get_session())
+        try:
+            result = await backfill_once(session, batch_size=32)
+            return {
+                "message": f"Embeddings backfill completed: {result['processed']} processed, {result['successful']} successful, {result['failed']} failed",
+                "result": result,
+                "status": "success"
+            }
+        finally:
+            session.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embeddings backfill failed: {str(e)}")
 
 
 @router.get("/", response_class=HTMLResponse)

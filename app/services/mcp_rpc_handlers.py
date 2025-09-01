@@ -127,8 +127,8 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
                 raise MCPRPCError(-32602, "web_snippets must be a list of strings")
     
     try:
-        # Step 1: RAG pre-filter to get candidate products (limit to 15 for web grounding efficiency)
-        rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip(), limit=15)
+        # Step 1: RAG pre-filter to get candidate products (limit to 25 for web grounding efficiency)
+        rag_candidates = await filter_products_for_brief(db_session, tenant.id, brief.strip(), limit=25)
         
         logger.info(f"RAG_DEBUG: RAG pre-filter returned {len(rag_candidates)} candidates")
         if rag_candidates:
@@ -150,7 +150,7 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         candidate_products = [p for p in products if p.id in candidate_product_ids]
         logger.info(f"RAG_DEBUG: Found {len(candidate_products)} products matching RAG candidates")
         
-        # RAG pre-filter already limited to 15, so no need for additional limiting
+        # RAG pre-filter already limited to 25, so no need for additional limiting
         logger.info(f"RAG_DEBUG: Using all {len(candidate_products)} RAG-filtered products for web grounding")
         
         if not candidate_products:

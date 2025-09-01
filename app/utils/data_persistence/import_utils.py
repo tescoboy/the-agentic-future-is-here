@@ -62,6 +62,7 @@ def import_all_data(session: Session, backup_data: Optional[Dict[str, Any]] = No
     import_external_agents(session, backup_data.get("external_agents", []))
     import_app_settings(backup_data.get("app_settings", {}))
     import_tenant_settings(backup_data.get("tenant_settings", {}))
+    import_product_embeddings(session, backup_data.get("product_embeddings", []))
     
     logger.info("Data import completed successfully")
     return backup_data
@@ -238,3 +239,59 @@ def import_app_settings(settings: Dict[str, Any]) -> None:
 def import_tenant_settings(settings: Dict[str, Any]) -> None:
     """Import tenant-specific settings."""
     logger.info("Tenant settings imported")
+
+
+def import_product_embeddings(session: Session, embeddings_data: List[Dict[str, Any]]) -> None:
+    """Import product embeddings."""
+    if not embeddings_data:
+        logger.info("No product embeddings to import")
+        return
+    
+    logger.info(f"Starting import of {len(embeddings_data)} product embeddings...")
+    
+    try:
+        # Clear existing embeddings to avoid conflicts
+        session.execute("DELETE FROM product_embeddings")
+        logger.info("Cleared existing product embeddings")
+        
+        embeddings_imported = 0
+        for embedding_data in embeddings_data:
+            try:
+                # Convert hex string back to BLOB
+                embedding_blob = bytes.fromhex(embedding_data["embedding"]) if embedding_data["embedding"] else None
+                
+                # Insert embedding using raw SQL since it's not a SQLModel
+                insert_query = """
+                INSERT INTO product_embeddings 
+                (id, product_id, embedding_text, embedding_hash, embedding, created_at, 
+                 provider, model, dim, updated_at, is_stale)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                
+                session.execute(insert_query, (
+                    embedding_data["id"],
+                    embedding_data["product_id"],
+                    embedding_data["embedding_text"],
+                    embedding_data["embedding_hash"],
+                    embedding_blob,
+                    embedding_data["created_at"],
+                    embedding_data["provider"],
+                    embedding_data["model"],
+                    embedding_data["dim"],
+                    embedding_data["updated_at"],
+                    embedding_data["is_stale"]
+                ))
+                
+                embeddings_imported += 1
+                
+            except Exception as e:
+                logger.warning(f"Failed to import embedding for product_id {embedding_data.get('product_id', 'unknown')}: {e}")
+                continue
+        
+        session.commit()
+        logger.info(f"Successfully imported {embeddings_imported} product embeddings")
+        
+    except Exception as e:
+        logger.error(f"Failed to import product embeddings: {e}")
+        session.rollback()
+        raise
