@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Console Test</title>
+</head>
+<body>
+    <h1>Debug Console Test</h1>
+    <form action="http://localhost:8000/buyer/" method="POST">
+        <textarea name="brief" placeholder="Enter brief...">netflix shows for teenagers</textarea><br><br>
+        <input type="checkbox" name="agents" value="netflix" checked> Netflix<br>
+        <input type="checkbox" name="agents" value="nytimes" checked> NY Times<br><br>
+        <button type="submit">Submit Brief</button>
+    </form>
+    
+    <script>
+        // Auto-submit after 2 seconds for testing
+        setTimeout(() => {
+            document.querySelector('form').submit();
+        }, 2000);
+    </script>
+</body>
+</html>

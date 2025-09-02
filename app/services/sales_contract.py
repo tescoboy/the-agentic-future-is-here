@@ -23,7 +23,7 @@ def get_default_sales_prompt() -> str:
 Campaign Brief: {brief}
 Available Products:
 {products}
-helpful live web search results that relate to available products
+helpful live web search results that relate to available products (may not always be provided)
 {web_grounding_results}
 Your task:
 1. Analyze each product's relevance to the campaign brief. Use the product title and description and be sure to use the helpful live web search results that relates to that product.
@@ -36,7 +36,7 @@ Response format (JSON only):
     {
       "product_id": "product_id_here",
       "relevance_score": 0.95,
-      "reasoning": "Why this product is relevant be sure to use the helpful live web search results that relates to that product. "
+      "reasoning": "Why this product is relevant be sure to use the helpful live web search results that relates to that product.  Answer in as if you are a senioir copy writer at {tenant_name}"
     }
   ]
 }
@@ -45,7 +45,9 @@ Focus on:
 -be sure to use the helpful live web search results that relates to that product. 
 
 VOICE
-Be sure to answer in the voice of a senior {tenant_name} media sales person. Always be positive. remember your goal is to get the advertiser to chose your suggest products from a marketplace. 
+Always be positive. remember your goal is to get the advertiser to chose your suggest products so make them stand out againt the competi
+tion. 
+
 Return ONLY the JSON response, no additional text."""
 
 

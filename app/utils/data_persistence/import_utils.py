@@ -2,9 +2,11 @@
 Import functions for data persistence.
 """
 
+import gzip
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Dict, List, Any, Optional
 from sqlmodel import Session, select
 
@@ -23,8 +25,10 @@ def import_all_data(session: Session, backup_data: Optional[Dict[str, Any]] = No
     
     if backup_data is None:
         if backup_file is None:
-            # Find the most recent backup
-            backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+            # Find the most recent backup (include both .json and .json.gz files)
+            json_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+            gz_files = list(BACKUP_DIR.glob("full_backup_*.json.gz"))
+            backup_files = json_files + gz_files
             if not backup_files:
                 logger.warning("No backup files found")
                 return {}
@@ -40,8 +44,16 @@ def import_all_data(session: Session, backup_data: Optional[Dict[str, Any]] = No
             logger.error(f"Backup file not found: {backup_file}")
             raise FileNotFoundError(f"Backup file not found: {backup_file}")
         
-        with open(backup_file, 'r', encoding='utf-8') as f:
-            backup_data = json.load(f)
+        # Handle both compressed (.gz) and uncompressed files
+        backup_path = Path(backup_file)
+        if backup_path.suffix == '.gz':
+            logger.info(f"Loading compressed backup file: {backup_file}")
+            with gzip.open(backup_file, 'rt', encoding='utf-8') as f:
+                backup_data = json.load(f)
+        else:
+            logger.info(f"Loading uncompressed backup file: {backup_file}")
+            with open(backup_file, 'r', encoding='utf-8') as f:
+                backup_data = json.load(f)
         
         logger.info(f"Importing data from: {backup_file}")
     else:

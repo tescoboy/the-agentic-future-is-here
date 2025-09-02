@@ -125,7 +125,10 @@ async def backup_status_endpoint():
         from app.utils.data_persistence import BACKUP_DIR
         import os
         
-        backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+        # Include both compressed (.json.gz) and uncompressed (.json) backup files
+        json_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+        gz_files = list(BACKUP_DIR.glob("full_backup_*.json.gz"))
+        backup_files = json_files + gz_files
         latest_backup = None
         if backup_files:
             latest_backup = max(backup_files, key=os.path.getctime)

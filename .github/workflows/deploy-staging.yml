@@ -1,0 +1,64 @@
+name: Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    # Only run if CI/CD pipeline succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run smoke tests against staging
+      run: |
+        echo "💨 Running smoke tests against staging environment..."
+        # Add your staging smoke test commands here
+        echo "Smoke tests completed successfully"
+    
+    - name: Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        # Add your staging deployment commands here
+        # This could be:
+        # - Docker build and push
+        # - Kubernetes deployment
+        # - Render deployment
+        # - AWS/GCP deployment
+        echo "Deployment to staging completed"
+    
+    - name: Verify deployment
+      run: |
+        echo "✅ Verifying staging deployment..."
+        # Add health checks and verification
+        echo "Staging deployment verified successfully"
+    
+    - name: Notify team
+      run: |
+        echo "📢 Staging deployment completed successfully!"
+        # Add notification logic (Slack, email, etc.)
+

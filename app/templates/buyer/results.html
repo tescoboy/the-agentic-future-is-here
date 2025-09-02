@@ -8,7 +8,7 @@
         <div class="col-12">
             <!-- Summary Statistics -->
             {% if summary_stats.total > 0 %}
-                <div class="alert alert-info" role="alert">
+                <div class="alert alert-info results-summary" role="alert">
                     <i class="fa-solid fa-chart-bar me-2"></i>
                     <strong>Summary:</strong> {{ summary_stats.success }} agents succeeded, {{ summary_stats.failure }} failed
                 </div>
@@ -23,7 +23,7 @@
             {% endif %}
 
             <!-- Submitted Brief -->
-            <div class="card mb-4 shadow">
+            <div class="card mb-4 shadow brief-display">
                 <div class="card-header bg-secondary text-white">
                     <h3 class="mb-0">
                         <i class="fa-solid fa-file-lines me-2"></i>
@@ -31,7 +31,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <p class="mb-0">{{ brief }}</p>
+                    <p class="mb-0 card-text">{{ brief }}</p>
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
                                     <div class="row">
                                         {% for item in result.product_items %}
                                             <div class="col-md-6 mb-3">
-                                                <div class="card h-100 shadow-sm">
+                                                <div class="card h-100 shadow-sm product-result-card">
                                                     <div class="card-header d-flex justify-content-between align-items-start bg-light">
                                                         <h6 class="mb-0 fw-bold product-title" title="{{ item.product_name }}">{{ item.product_name }}</h6>
                                                         <button class="btn btn-success btn-sm" onclick="activateCampaign('{{ item.product_name }}')">
@@ -70,7 +70,7 @@
                                                         </button>
                                                     </div>
                                                     <div class="card-body">
-                                                        <p class="card-text small text-muted mb-3">
+                                                        <p class="card-text product-description mb-3">
                                                             {{ item.product_description }}
                                                         </p>
                                                         
@@ -79,11 +79,11 @@
                                                             <div class="col-6">
                                                                 <div class="d-flex align-items-center mb-2">
                                                                     <i class="fa-solid fa-dollar-sign text-success me-2"></i>
-                                                                    <strong>${{ "%.2f"|format(item.price_cpm) }} CPM</strong>
+                                                                    <span class="price-display product-price">${{ "%.2f"|format(item.price_cpm) }} CPM</span>
                                                                 </div>
                                                                 <div class="d-flex align-items-center">
                                                                     <i class="fa-solid fa-truck text-info me-2"></i>
-                                                                    <span class="badge {% if item.is_guaranteed %}bg-success{% else %}bg-warning{% endif %} text-truncate" style="max-width: 120px;" title="{{ item.delivery_type }}">
+                                                                    <span class="badge {% if item.is_guaranteed %}bg-success{% else %}bg-warning{% endif %} text-truncate badge-delivery" title="{{ item.delivery_type }}">
                                                                         {{ item.delivery_type }}
                                                                     </span>
                                                                 </div>
@@ -97,7 +97,7 @@
                                                                         </small>
                                                                         <div class="d-flex flex-wrap">
                                                                             {% for format in item.formats %}
-                                                                                <span class="badge bg-primary me-1 mb-1 text-truncate" style="max-width: 80px;" title="{{ format }}">{{ format }}</span>
+                                                                                <span class="badge bg-primary me-1 mb-1 text-truncate badge-format" title="{{ format }}">{{ format }}</span>
                                                                             {% endfor %}
                                                                         </div>
                                                                     </div>
@@ -119,7 +119,7 @@
                                                                                         'germany': 'Germany',
                                                                                         'singapore': 'Singapore'
                                                                                     }.get(country.lower(), country) %}
-                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ country_display }}">{{ country_display }}</span>
+                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate badge-targeting" title="{{ country_display }}">{{ country_display }}</span>
                                                                                 {% endfor %}
                                                                             {% elif item.targeting.geo %}
                                                                                 {% for country in item.targeting.geo %}
@@ -131,17 +131,17 @@
                                                                                         'germany': 'Germany',
                                                                                         'singapore': 'Singapore'
                                                                                     }.get(country.lower(), country) %}
-                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ country_display }}">{{ country_display }}</span>
+                                                                                    <span class="badge bg-secondary me-1 mb-1 text-truncate badge-targeting" title="{{ country_display }}">{{ country_display }}</span>
                                                                                 {% endfor %}
                                                                             {% else %}
                                                                                 {% for key, value in item.targeting.items() %}
                                                                                     {% if key != 'device_type_any_of' and key != 'device_type' %}
                                                                                         {% if value is sequence and value is not string %}
                                                                                             {% for v in value %}
-                                                                                                <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ v }}">{{ v }}</span>
+                                                                                                <span class="badge bg-secondary me-1 mb-1 text-truncate badge-targeting" title="{{ v }}">{{ v }}</span>
                                                                                             {% endfor %}
                                                                                         {% else %}
-                                                                                            <span class="badge bg-secondary me-1 mb-1 text-truncate" style="max-width: 120px;" title="{{ value }}">{{ value }}</span>
+                                                                                            <span class="badge bg-secondary me-1 mb-1 text-truncate badge-targeting" title="{{ value }}">{{ value }}</span>
                                                                                         {% endif %}
                                                                                     {% endif %}
                                                                                 {% endfor %}
@@ -158,7 +158,7 @@
                                                         <div class="mb-2">
                                                             <strong>Reason:</strong>
                                                             <div class="reason-text-container" data-full-text="{{ item.reason }}">
-                                                                <p class="card-text mb-0 reason-text-preview" style="max-height: 4.5em; overflow: hidden; line-height: 1.5;">
+                                                                <p class="card-text mb-0 reason-text-preview">
                                                                     {{ item.reason }}
                                                                 </p>
                                                                 {% if item.reason|length > 200 %}
@@ -234,7 +234,7 @@
                                                         <div class="mb-2">
                                                             <strong>Reason:</strong>
                                                             <div class="reason-text-container" data-full-text="{{ item.reason }}">
-                                                                <p class="card-text mb-0 reason-text-preview" style="max-height: 4.5em; overflow: hidden; line-height: 1.5;">
+                                                                <p class="card-text mb-0 reason-text-preview">
                                                                     {{ item.reason }}
                                                                 </p>
                                                                 {% if item.reason|length > 200 %}
@@ -359,80 +359,342 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Load RAG debug logs
-    loadRAGDebugLogs();
+    // ===============================================
+    // ADVANCED DEBUG CONSOLE LOGGING SYSTEM
+    // ===============================================
+    
+    const DebugConsole = {
+        styles: {
+            agent: 'color: #2E8B57; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);',
+            section: 'color: #4169E1; font-weight: bold; font-size: 12px; text-decoration: underline;',
+            data: 'color: #708090; font-size: 11px; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;',
+            success: 'color: #228B22; font-weight: bold;',
+            warning: 'color: #FF8C00; font-weight: bold;',
+            error: 'color: #DC143C; font-weight: bold;',
+            highlight: 'color: #9932CC; font-weight: bold; background: rgba(153, 50, 204, 0.1); padding: 2px 4px;',
+            value: 'color: #2F4F4F; font-weight: normal;'
+        },
+        
+        logAgentDebug: function(agentName, debugData) {
+            console.groupCollapsed(
+                `%c🤖 ${agentName} - Complete Debug Information`, 
+                this.styles.agent
+            );
+            
+            // 1. Query Expansion Analysis
+            console.groupCollapsed('%c📝 1. Query Expansion Analysis', this.styles.section);
+            if (debugData.queryExpansion) {
+                console.log('%cWas Expanded:', this.styles.highlight, debugData.queryExpansion.expanded ? 'YES' : 'NO');
+                if (debugData.queryExpansion.expanded) {
+                    console.log('%cOriginal Query:', this.styles.data, debugData.queryExpansion.original);
+                    console.log('%cExpanded Query:', this.styles.value, debugData.queryExpansion.expandedQuery);
+                    console.log('%cExpansion Terms:', this.styles.data, debugData.queryExpansion.terms.join(', '));
+                }
+            } else {
+                console.log('%cNo expansion data available', this.styles.warning);
+            }
+            console.groupEnd();
+            
+            // 2. RAG Filter Strategy
+            console.groupCollapsed('%c🔍 2. RAG Filter Strategy & Results', this.styles.section);
+            if (debugData.ragFilter) {
+                console.log('%cStrategy Used:', this.styles.highlight, debugData.ragFilter.strategy);
+                console.log('%cTotal Candidates Found:', this.styles.highlight, debugData.ragFilter.totalCandidates);
+                console.log('%cTop Results with Scores:', this.styles.data);
+                console.table(debugData.ragFilter.topResults.map((result, idx) => ({
+                    Rank: idx + 1,
+                    'Product Name': result.name,
+                    'RAG Score': result.rag_score,
+                    'FTS Score': result.fts_score,
+                    'Combined': result.combined_score
+                })));
+            } else {
+                console.log('%cNo RAG filter data available', this.styles.warning);
+            }
+            console.groupEnd();
+            
+            // 3. Web Grounding Snippets
+            console.groupCollapsed('%c🌐 3. Web Grounding Snippets', this.styles.section);
+            if (debugData.webGrounding && debugData.webGrounding.snippets && debugData.webGrounding.snippets.length > 0) {
+                console.log('%cTotal Snippets Generated:', this.styles.highlight, debugData.webGrounding.snippets.length);
+                console.log('%cWeb Search Results Table:', this.styles.data);
+                console.table(debugData.webGrounding.snippets.map((snippet, idx) => ({
+                    '#': idx + 1,
+                    'Related Product': snippet.product,
+                    'Content Preview': snippet.content.length > 80 ? 
+                        snippet.content.substring(0, 80) + '...' : snippet.content,
+                    'Full Length': snippet.content.length + ' chars'
+                })));
+                
+                console.log('%cFull Snippet Details:', this.styles.data);
+                debugData.webGrounding.snippets.forEach((snippet, idx) => {
+                    console.groupCollapsed(`%c📄 Snippet ${idx + 1}: ${snippet.product}`, this.styles.data);
+                    console.log(`%c"${snippet.content}"`, this.styles.value);
+                    console.groupEnd();
+                });
+            } else {
+                console.log('%cNo web grounding snippets available', this.styles.warning);
+            }
+            console.groupEnd();
+            
+            // 4. Sales Agent Prompt
+            console.groupCollapsed('%c📋 4. Sales Agent Prompt Details', this.styles.section);
+            if (debugData.salesPrompt) {
+                console.log('%cPrompt Source:', this.styles.highlight, debugData.salesPrompt.source.toUpperCase());
+                console.log('%cFull Prompt Used:', this.styles.data);
+                console.log('%c' + debugData.salesPrompt.fullPrompt, this.styles.value);
+            } else {
+                console.log('%cNo sales prompt data available', this.styles.warning);
+            }
+            console.groupEnd();
+            
+            // 5. Final Results Summary
+            console.groupCollapsed('%c📊 5. Results Summary', this.styles.section);
+            console.log('%cAgent Success:', this.styles.highlight, debugData.results.success ? '✅ SUCCESS' : '❌ FAILED');
+            console.log('%cTotal Products Returned:', this.styles.data, debugData.results.totalItems);
+            console.log('%cProcessing Time:', this.styles.data, debugData.results.processingTime || 'Not measured');
+            if (debugData.results.errorMessage) {
+                console.log('%cError:', this.styles.error, debugData.results.errorMessage);
+            }
+            console.groupEnd();
+            
+            console.groupEnd();
+        },
+        
+        extractDebugData: function() {
+            const salesResults = {{ sales_results | tojson }};
+            const ragLogs = {{ rag_debug_logs | tojson }};
+            
+            console.log('%c🚀 Advanced Debug Console System Activated', 
+                       'color: #FF6347; font-weight: bold; font-size: 16px; ' +
+                       'background: linear-gradient(90deg, #FF6347, #FFA500); ' +
+                       'padding: 8px 16px; border-radius: 4px; color: white;');
+            
+            console.log('🐛 DEBUG: ragLogs array:', ragLogs);
+            console.log('🐛 DEBUG: salesResults array:', salesResults);
+            
+            console.log('%c📊 Processing debug data for ' + salesResults.length + ' agent(s)...', 
+                       'color: #4682B4; font-size: 12px; margin-top: 10px;');
+            
+            // Process each agent's results
+            salesResults.forEach((result, idx) => {
+                const agentName = result.agent?.name || `Agent ${idx + 1}`;
+                
+                const debugData = {
+                    queryExpansion: this.parseQueryExpansion(ragLogs),
+                    ragFilter: this.parseRAGFilter(ragLogs),
+                    webGrounding: this.parseWebGrounding(result, ragLogs),
+                    salesPrompt: this.parseSalesPrompt(result),
+                    results: {
+                        success: result.ok,
+                        totalItems: result.product_items?.length || 0,
+                        processingTime: result.processing_time,
+                        errorMessage: result.error
+                    }
+                };
+                
+                this.logAgentDebug(agentName, debugData);
+            });
+            
+            console.log('%c✨ Debug analysis complete! Check the collapsed groups above for detailed information.', 
+                       'color: #228B22; font-weight: bold; font-size: 12px; margin-top: 10px;');
+        },
+        
+        parseQueryExpansion: function(ragLogs) {
+            const expansionCompleteLog = ragLogs.find(log => log.includes('Expansion complete:'));
+            const expandedQueryLog = ragLogs.find(log => log.includes('Expanded Query:'));
+            const expansionTermsLog = ragLogs.find(log => log.includes('Expansion Terms:'));
+            const originalQueryLog = ragLogs.find(log => log.includes('QUERY EXPANSION:'));
+            
+            if (expansionCompleteLog) {
+                // Extract terms from "Expansion complete: ['term1', 'term2', ...]"
+                const termsMatch = expansionCompleteLog.match(/\[(.*?)\]/);
+                const terms = termsMatch ? termsMatch[1].split("', '").map(t => t.replace(/'/g, '')) : [];
+                
+                // Extract expanded query
+                const expandedQuery = expandedQueryLog ? 
+                    expandedQueryLog.split('Expanded Query: ')[1]?.replace(/'/g, '') : 
+                    terms.join(' ');
+                
+                // Extract original query
+                const original = originalQueryLog ? 
+                    originalQueryLog.split('QUERY EXPANSION: ')[1]?.replace(/'/g, '') :
+                    'Original brief text';
+                
+                return {
+                    expanded: true,
+                    original: original,
+                    expandedQuery: expandedQuery,
+                    terms: terms
+                };
+            }
+            
+            return { expanded: false, original: 'No expansion performed' };
+        },
+        
+        parseRAGFilter: function(ragLogs) {
+            const strategyLog = ragLogs.find(log => log.includes('Strategy Used:'));
+            const candidatesLog = ragLogs.find(log => log.includes('Total Candidates:'));
+            const topResultsLogs = ragLogs.filter(log => 
+                log.includes('ID:') && log.includes('|') && log.includes('RAG:') && log.includes('FTS:')
+            );
+            
+            if (strategyLog) {
+                const strategy = strategyLog.split('Strategy Used: ')[1]?.trim() || 'Unknown';
+                const totalCandidates = candidatesLog ? 
+                    parseInt(candidatesLog.split('Total Candidates: ')[1]?.match(/\d+/)?.[0]) || 0 : 0;
+                
+                const topResults = topResultsLogs.slice(0, 5).map((log, idx) => {
+                    // Parse format: "   1. ID:   5 | High Income Audience Pack | RAG:0.000 | FTS:1.000 | Combined:0.300 | text_match"
+                    const parts = log.split('|').map(p => p.trim());
+                    
+                    let name = 'Unknown Product';
+                    let ragScore = '0.000';
+                    let ftsScore = '0.000';
+                    let combinedScore = '0.000';
+                    
+                    if (parts.length >= 4) {
+                        name = parts[1] || `Product ${idx + 1}`;
+                        ragScore = parts[2]?.split(':')[1]?.trim() || '0.000';
+                        ftsScore = parts[3]?.split(':')[1]?.trim() || '0.000';
+                        if (parts[4]) {
+                            combinedScore = parts[4].split(':')[1]?.trim() || '0.000';
+                        }
+                    }
+                    
+                    return { 
+                        name, 
+                        rag_score: ragScore, 
+                        fts_score: ftsScore,
+                        combined_score: combinedScore
+                    };
+                });
+                
+                return { strategy, totalCandidates, topResults };
+            }
+            
+            return null;
+        },
+        
+        parseWebGrounding: function(result, ragLogs) {
+            console.log('🔍 parseWebGrounding called with', ragLogs.length, 'logs');
+            
+            // Look for actual web grounding snippets in logs
+            const snippetLogs = ragLogs.filter(log => 
+                log.includes('snippet:') && !log.includes('WEB_DEBUG')
+            );
+            
+            const webDebugLogs = ragLogs.filter(log => 
+                log.includes('WEB_DEBUG') && log.includes('snippet:')
+            );
+            
+            console.log('📄 Found', snippetLogs.length, 'snippet logs and', webDebugLogs.length, 'WEB_DEBUG logs');
+            
+            const processedSnippetLogs = ragLogs.filter(log => 
+                log.includes('Raw response text:') ||
+                log.includes('Successfully parsed') ||
+                log.includes('Product') && log.includes('snippet:')
+            );
+            
+            let snippets = [];
+            
+            // Extract from direct snippet logs
+            snippetLogs.forEach(log => {
+                const snippetContent = log.split('snippet:')[1]?.trim();
+                if (snippetContent) {
+                    snippets.push({
+                        content: snippetContent,
+                        product: 'From snippet log'
+                    });
+                }
+            });
+            
+            // Extract from WEB_DEBUG logs with product context
+            webDebugLogs.forEach(log => {
+                const productMatch = log.match(/Product (.+?) snippet:/);
+                const snippetContent = log.split('snippet:')[1]?.trim();
+                
+                if (snippetContent && productMatch) {
+                    snippets.push({
+                        content: snippetContent,
+                        product: productMatch[1]
+                    });
+                }
+            });
+            
+            // If we still don't have snippets, look for raw JSON responses
+            const jsonResponseLogs = ragLogs.filter(log => 
+                log.includes('Raw response text:') && log.includes('snippets')
+            );
+            
+            jsonResponseLogs.forEach(log => {
+                try {
+                    // Look for JSON pattern in the log and extract snippets array
+                    const jsonStart = log.indexOf('{"snippets"');
+                    if (jsonStart !== -1) {
+                        // Find the end of the JSON by looking for the closing bracket
+                        let jsonEnd = jsonStart;
+                        let bracketCount = 0;
+                        for (let i = jsonStart; i < log.length; i++) {
+                            if (log[i] === '{') bracketCount++;
+                            if (log[i] === '}') bracketCount--;
+                            if (bracketCount === 0) {
+                                jsonEnd = i + 1;
+                                break;
+                            }
+                        }
+                        
+                        const jsonStr = log.substring(jsonStart, jsonEnd);
+                        const responseData = JSON.parse(jsonStr);
+                        
+                        if (responseData.snippets && Array.isArray(responseData.snippets)) {
+                            responseData.snippets.forEach((snippet, idx) => {
+                                if (typeof snippet === 'string' && snippet.length > 10) {
+                                    snippets.push({
+                                        content: snippet,
+                                        product: 'From JSON response ' + (idx + 1)
+                                    });
+                                }
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse JSON from log:', e);
+                }
+            });
+            
+            // Remove duplicates
+            const uniqueSnippets = snippets.filter((snippet, index, self) => 
+                index === self.findIndex(s => s.content === snippet.content)
+            );
+            
+            if (uniqueSnippets.length > 0) {
+                return { snippets: uniqueSnippets };
+            }
+            
+            return null;
+        },
+        
+        parseSalesPrompt: function(result) {
+            // Get the default sales prompt from the system
+            const defaultPrompt = 'You are an expert media seller working for {tenant_name}. Your job is to find relevant products for a programmatic advertising campaign. Campaign Brief: {brief}. Available Products: {products}. Helpful live web search results that relate to available products (may not always be provided): {web_grounding_results}. Your task: 1. Analyze each product relevance to the campaign brief. Use the product title and description and be sure to use the helpful live web search results that relates to that product. 2. Rank products from most to least relevant. 3. Return the top products. Response format (JSON only): {"products": [{"product_id": "product_id_here", "relevance_score": 0.95, "reasoning": "Why this product is relevant..."}]}. Focus on: - Targeting alignment with brief requirements - be sure to use the helpful live web search results that relates to that product. VOICE: Always be positive. Return ONLY the JSON response, no additional text.';
+
+            return {
+                source: result.prompt_source || 'default',
+                fullPrompt: result.custom_prompt || defaultPrompt
+            };
+        },
+        
+        extractValue: function(logs, key) {
+            const log = logs.find(l => l.includes(key));
+            return log ? log.split(key)[1]?.trim() : null;
+        }
+    };
+    
+    // Initialize the debug system
+    DebugConsole.extractDebugData();
+    
 });
 
-function loadRAGDebugLogs() {
-    fetch('/buyer/debug/rag-logs')
-        .then(response => response.json())
-        .then(data => {
-            if (data.rag_logs && data.rag_logs.length > 0) {
-                displayRAGDebugLogs(data.rag_logs);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading RAG debug logs:', error);
-        });
-}
-
-function displayRAGDebugLogs(logs) {
-    // Find or create the RAG debug section
-    let ragDebugSection = document.querySelector('.rag-debug-container');
-    if (!ragDebugSection) {
-        // Create the RAG debug section
-        const debugCard = document.createElement('div');
-        debugCard.className = 'card mb-4 shadow';
-        debugCard.innerHTML = `
-            <div class="card-header bg-info text-white">
-                <h3 class="mb-0">
-                    <i class="fa-solid fa-bug me-2"></i>
-                    RAG Debug Information
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="rag-debug-container"></div>
-            </div>
-        `;
-        
-        // Insert before the navigation section
-        const navigation = document.querySelector('.d-grid.gap-2.d-md-flex.justify-content-md-center');
-        navigation.parentNode.insertBefore(debugCard, navigation);
-        ragDebugSection = debugCard.querySelector('.rag-debug-container');
-    }
-    
-    // Clear existing logs
-    ragDebugSection.innerHTML = '';
-    
-    // Add each log line
-    logs.forEach(log => {
-        const logLine = document.createElement('div');
-        logLine.className = 'rag-debug-line';
-        logLine.textContent = log;
-        
-        // Add color coding based on emoji
-        if (log.includes('🔍')) {
-            logLine.style.color = '#0d6efd';
-            logLine.style.fontWeight = '600';
-        } else if (log.includes('🎯')) {
-            logLine.style.color = '#198754';
-            logLine.style.fontWeight = '600';
-        } else if (log.includes('🧠')) {
-            logLine.style.color = '#6f42c1';
-            logLine.style.fontWeight = '600';
-        } else if (log.includes('📝')) {
-            logLine.style.color = '#fd7e14';
-            logLine.style.fontWeight = '600';
-        } else if (log.includes('❌')) {
-            logLine.style.color = '#dc3545';
-            logLine.style.fontWeight = '600';
-        } else if (log.includes('⚠️')) {
-            logLine.style.color = '#ffc107';
-            logLine.style.fontWeight = '600';
-        }
-        
-        ragDebugSection.appendChild(logLine);
-    });
-}
 </script>
 {% endblock %}

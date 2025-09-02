@@ -42,7 +42,10 @@ def restore_backup(backup_file: Optional[str] = None) -> str:
 def list_backups() -> List[str]:
     """List all available backup files."""
     ensure_data_directories()
-    backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+    # Include both compressed (.json.gz) and uncompressed (.json) backup files
+    json_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+    gz_files = list(BACKUP_DIR.glob("full_backup_*.json.gz"))
+    backup_files = json_files + gz_files
     return [f.name for f in sorted(backup_files, key=os.path.getctime, reverse=True)]
 
 
@@ -99,8 +102,10 @@ def auto_restore_on_startup(session: Session) -> None:
             logger.info(f"Database not empty ({total_records} records), skipping auto-restore")
             return
         
-        # Database is empty, check for backup files
-        backup_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+        # Database is empty, check for backup files (include both .json and .json.gz)
+        json_files = list(BACKUP_DIR.glob("full_backup_*.json"))
+        gz_files = list(BACKUP_DIR.glob("full_backup_*.json.gz"))
+        backup_files = json_files + gz_files
         
         # Debug: Log backup files found
         logger.info(f"RESTORE_DEBUG: Backup files found: {len(backup_files)}")

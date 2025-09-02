@@ -98,25 +98,31 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
+<!-- Modern AI Platform Loading Overlay -->
 <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none loading-overlay">
     <div class="d-flex justify-content-center align-items-center h-100">
-        <div class="text-center text-white">
-            <div class="spinner-border text-light mb-3 loading-spinner" role="status">
-                <span class="visually-hidden">Loading...</span>
+        <div class="text-center">
+            <div class="spinner-border loading-spinner mb-4" role="status">
+                <span class="visually-hidden">Processing campaign brief...</span>
             </div>
-            <h4 class="mb-2">Processing Your Brief</h4>
-            <p class="mb-0">Our AI agents are analyzing your requirements and finding the best matches...</p>
-            <div class="mt-3">
+            
+            <h4 class="mb-3">AI Processing Campaign Brief</h4>
+            
+            <p class="mb-0">
+                Our intelligent agents are analyzing your requirements and<br>
+                matching them with optimal advertising inventory.
+            </p>
+            
+            <div class="mt-4">
                 <small class="text-muted">
-                    <i class="fa-solid fa-clock me-1"></i>
-                    This may take up to 25 seconds
+                    <i class="fa-solid fa-clock"></i>
+                    Estimated completion: 15-30 seconds
                 </small>
             </div>
         </div>
     </div>
 </div>
 
-<script src="/static/js/buyer.js"></script>
+        <script src="/static/js/buyer.js?v=20250902-7"></script>
 {% endblock %}
 
