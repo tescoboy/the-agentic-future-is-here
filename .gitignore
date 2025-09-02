@@ -135,3 +135,4 @@ data/backups/*.zip
 catalog_final_hg.csv
 catalog_final.csv
 data/tenant_products.csv
+test_export.json

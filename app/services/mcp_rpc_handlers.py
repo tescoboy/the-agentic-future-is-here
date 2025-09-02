@@ -10,6 +10,7 @@ from app.repos.products import list_products
 from app.services.ai_client import rank_products_with_ai
 from app.services.sales_contract import get_default_sales_prompt
 from app.services.product_rag import filter_products_for_brief
+from app.utils.macro_processor import MacroProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -270,6 +271,17 @@ async def _rank_products(tenant_slug: str, params: dict, db_session: Session) ->
         
         # Replace tenant name placeholder in the prompt
         prompt = prompt.replace("{tenant_name}", tenant.name)
+        # Process prompt with web grounding results if available (MACRO PROCESSING)
+        if web_grounding_results and "{web_grounding_results}" in prompt:
+            context = {
+                "web_grounding_results": web_grounding_results,
+                "tenant_name": tenant.name,
+                "brief": brief.strip()
+            }
+            prompt = MacroProcessor.process_prompt(prompt, context)
+            logger.info(f"AI_DEBUG: Sales agent prompt processed with web grounding macros")
+        else:
+            logger.info(f"AI_DEBUG: No web grounding results or macro not found in sales agent prompt")
         
         # Step 5: Call AI ranking on filtered candidates with web grounding results
         try:

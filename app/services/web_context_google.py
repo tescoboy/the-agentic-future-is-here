@@ -56,28 +56,40 @@ async def fetch_web_context(brief: str, timeout_ms: int, max_snippets: int, mode
             system_prompt = MacroProcessor.process_prompt(custom_prompt, context)
         else:
             # Default web grounding prompt
-            system_prompt = """you are a consultant working for Netflix. Your task is enriching an advertising campaign brief with fresh, web-sourced context.
+            tenant_name = context.get('tenant_name', 'Netflix')
+            platform_context = context.get('platform_context', 'Netflix platform')
+            search_focus = context.get('search_focus', 'generic content')
+            system_prompt = f"""You are a consultant working for {tenant_name}. Your task is enriching an advertising campaign brief with fresh, web-sourced context.
+
+IMPORTANT: You are researching content from {platform_context}. Stay focused on {tenant_name} content only.
+
+{context.get('search_boundary', 'Focus only on content from this platform.')}
+
 The sales team thinks the following products may answer the advertisers brief and they need your help researching them so they can recommend them.
-Products = {product_catalog}
-In the title and description of the product you will find shows, actors, genres, or packages. You job is to use these to do web searches and gather concise snippets that will help an advertiser understand if the product is a strong fit for the brief.
+
+Products = {{product_catalog}}
+
 Campaign Brief:
-{brief}
+{{brief}}
+
 Instructions:
-1. Search for up-to-date information on each Netflix show, actor, or package listed.
-2. Extract **short, factual snippets** (≤350 characters each) that describe:
-   - The show's audience, cultural relevance, or themes
-   - Recent popularity, awards, or positive press coverage
-   - Key actors, storylines, or events tied to the show
-3. Write snippets that can be directly used to justify why a product aligns with the advertiser's brief.
-4. Do not invent information. Only include details from real search results.
-5. Return plain snippets, no formatting.
+1. For EACH product, search for SPECIFIC information about that exact title/name.
+2. Do NOT search for generic {search_focus} - search for the specific product listed.
+3. Extract **unique, factual snippets** (≤350 characters each) that describe:
+   - The specific product's target audience, cultural relevance, or themes
+   - Recent popularity, awards, chart performance, or positive press coverage
+   - Key performers, storylines, or notable events tied to THIS specific product
+4. Each snippet must be UNIQUE to the specific product - avoid generic information.
+5. Do not invent information. Only include details from real search results.
+6. Return plain snippets, no formatting.
+
 Response format:
-{
+{{
   "snippets": [
     "Snippet 1 here…",
     "Snippet 2 here…"
   ]
-}"""
+}}"""
         
         # Execute web search with timeout
         try:

@@ -80,18 +80,28 @@ async def rank_products_with_ai(brief: str, products: List[Product], prompt: str
         products_data.append(product_info)
     
     # Process prompt with macros if web grounding results are available
-    if web_grounding_results and "{web_grounding_results}" in prompt:
-        from app.utils.macro_processor import MacroProcessor
-        context = {
-            "web_grounding_results": web_grounding_results
-        }
-        prompt = MacroProcessor.process_prompt(prompt, context)
-        logger.info(f"AI_DEBUG: Prompt processed with web grounding results")
-        logger.info(f"AI_DEBUG: Web grounding results structure: {list(web_grounding_results.keys())}")
-        if "product_snippets" in web_grounding_results:
-            logger.info(f"AI_DEBUG: Number of product snippets: {len(web_grounding_results['product_snippets'])}")
+    # Note: The prompt may already be processed by the MCP handler
+    if web_grounding_results:
+        # Check if prompt still contains macros (not yet processed)
+        if "{web_grounding_results}" in prompt:
+            from app.utils.macro_processor import MacroProcessor
+            context = {
+                "web_grounding_results": web_grounding_results,
+                "tenant_name": "Unknown",  # Will be replaced if present
+                "brief": brief
+            }
+            prompt = MacroProcessor.process_prompt(prompt, context)
+            logger.info(f"AI_DEBUG: Prompt processed with web grounding results")
+            logger.info(f"AI_DEBUG: Web grounding results structure: {list(web_grounding_results.keys())}")
+            if "product_snippets" in web_grounding_results:
+                logger.info(f"AI_DEBUG: Number of product snippets: {len(web_grounding_results['product_snippets'])}")
+        else:
+            logger.info(f"AI_DEBUG: Prompt already processed by MCP handler, using as-is")
+            logger.info(f"AI_DEBUG: Web grounding results available: {list(web_grounding_results.keys())}")
+            if "product_snippets" in web_grounding_results:
+                logger.info(f"AI_DEBUG: Number of product snippets: {len(web_grounding_results['product_snippets'])}")
     else:
-        logger.info(f"AI_DEBUG: No web grounding results or macro not found in prompt")
+        logger.info(f"AI_DEBUG: No web grounding results available")
     
     # Build context section with web snippets if available
     context_section = ""

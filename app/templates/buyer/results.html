@@ -283,27 +283,7 @@
                 </div>
             </div>
 
-            <!-- RAG Debug Information -->
-            <!-- Debug: rag_debug_logs length = {{ rag_debug_logs|length }} -->
-            <div class="card mb-4 shadow">
-                <div class="card-header bg-info text-white">
-                    <h3 class="mb-0">
-                        <i class="fa-solid fa-bug me-2"></i>
-                        RAG Debug Information
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="rag-debug-container">
-                        {% if rag_debug_logs %}
-                            {% for log_line in rag_debug_logs %}
-                                <div class="rag-debug-line">{{ log_line }}</div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="rag-debug-line">No RAG debug logs available...</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Navigation -->
             <div class="d-grid gap-2 d-md-flex justify-content-md-center">

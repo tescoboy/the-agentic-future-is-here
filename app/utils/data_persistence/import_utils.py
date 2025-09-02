@@ -82,6 +82,28 @@ def import_all_data(session: Session, backup_data: Optional[Dict[str, Any]] = No
 
 def import_tenants_and_products(session: Session, tenants_data: List[Dict[str, Any]], products_data: List[Dict[str, Any]]) -> None:
     """Import tenants and products from separate arrays."""
+    
+    # Clear existing data before importing (like CSV import does)
+    logger.info("Clearing existing data before import...")
+    
+    # Clear products first (they depend on tenants)
+    products = session.exec(select(Product)).all()
+    for product in products:
+        session.delete(product)
+    
+    # Clear external agents
+    agents = session.exec(select(ExternalAgent)).all()
+    for agent in agents:
+        session.delete(agent)
+    
+    # Clear tenants last
+    tenants = session.exec(select(Tenant)).all()
+    for tenant in tenants:
+        session.delete(tenant)
+    
+    session.commit()
+    logger.info("Cleared existing data")
+    
     # First, import all tenants
     tenant_map = {}  # Map backup tenant_id to actual tenant
     for tenant_data in tenants_data:
